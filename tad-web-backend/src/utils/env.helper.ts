@@ -16,7 +16,7 @@ export interface EnvConfig {
   FRONTEND_URL: string;
   APS_CLIENT_ID: string;
   APS_CLIENT_SECRET: string;
-  REDIRECT_URI: string;
+  APS_CALLBACK_URL: string;
   AUTODESK_BASE_URL: string;
   THREE_LEGGED_TOKEN_SCOPES: string;
   TWO_LEGGED_TOKEN_SCOPES: string;
@@ -29,7 +29,7 @@ const requiredVars: (keyof EnvConfig)[] = [
   'FRONTEND_URL',
   'APS_CLIENT_ID',
   'APS_CLIENT_SECRET',
-  'REDIRECT_URI',
+  'APS_CALLBACK_URL',
   'AUTODESK_BASE_URL',
   'THREE_LEGGED_TOKEN_SCOPES',
   'TWO_LEGGED_TOKEN_SCOPES',
@@ -51,7 +51,7 @@ export function getEnvConfig(): EnvConfig {
     FRONTEND_URL:            process.env.FRONTEND_URL!,
     APS_CLIENT_ID:           process.env.APS_CLIENT_ID!,
     APS_CLIENT_SECRET:       process.env.APS_CLIENT_SECRET!,
-    REDIRECT_URI:            process.env.REDIRECT_URI!,
+    APS_CALLBACK_URL:        process.env.APS_CALLBACK_URL!,
     AUTODESK_BASE_URL:       process.env.AUTODESK_BASE_URL!,
     THREE_LEGGED_TOKEN_SCOPES: process.env.THREE_LEGGED_TOKEN_SCOPES!,
     TWO_LEGGED_TOKEN_SCOPES:   process.env.TWO_LEGGED_TOKEN_SCOPES!,

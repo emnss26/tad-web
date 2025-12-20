@@ -1,44 +1,23 @@
 {
-  // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
-    // File Layout
-    // "rootDir": "./src",
-    // "outDir": "./dist",
-
-    // Environment Settings
-    // See also https://aka.ms/tsconfig/module
-    "module": "nodenext",
-    "target": "esnext",
-    "types": [],
-    // For nodejs:
-    // "lib": ["esnext"],
-    // "types": ["node"],
-    // and npm install -D @types/node
-
-    // Other Outputs
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
-
-    // Stricter Typechecking Options
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-
-    // Style Options
-    // "noImplicitReturns": true,
-    // "noImplicitOverride": true,
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-    // "noFallthroughCasesInSwitch": true,
-    // "noPropertyAccessFromIndexSignature": true,
-
-    // Recommended Options
-    "strict": true,
-    "jsx": "react-jsx",
-    "verbatimModuleSyntax": true,
-    "isolatedModules": true,
-    "noUncheckedSideEffectImports": true,
-    "moduleDetection": "force",
-    "skipLibCheck": true,
-  }
+    /* Configuración de Módulos */
+    "target": "es2016",                                  /* Versión de JS a la que compila */
+    "module": "commonjs",                                /* Node.js usa CommonJS por defecto */
+    "moduleResolution": "node",                          /* Cómo busca los archivos importados */
+    "baseUrl": "./",
+    "outDir": "./dist",                                  /* Carpeta de salida */
+    "rootDir": "./src",                                  /* Carpeta de origen */
+    
+    /* Interoperabilidad */
+    "esModuleInterop": true,                             /* Permite importar módulos CommonJS como si fueran ES6 */
+    "forceConsistentCasingInFileNames": true,            
+    "strict": true,                                      
+    "skipLibCheck": true,                                
+    
+    /* LA SOLUCIÓN A TU ERROR: */
+    "verbatimModuleSyntax": false,                       /* Desactivamos esta regla estricta */
+    "resolveJsonModule": true                            /* Permite importar archivos .json */
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.test.ts"]
 }

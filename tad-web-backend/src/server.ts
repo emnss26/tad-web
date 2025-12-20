@@ -5,13 +5,13 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import path from 'path';
 
-// Cargar variables de entorno
+// Evironment variables
 dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: { origin: "*" } // Permitir conexiones del plugin de Revit
+  cors: { origin: "*" } 
 });
 
 const PORT = process.env.PORT || 8080;
@@ -20,17 +20,16 @@ const PORT = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json());
 
-// --- AQUÍ IRÁN TUS RUTAS DE API (Auth, APS, IA) ---
+// Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', service: 'TAD Cloud Core' });
 });
 
-// --- WEBSOCKETS (MCP PROXY) ---
+//Websocket 
 io.on('connection', (socket) => {
   console.log('Cliente MCP conectado:', socket.id);
   
   socket.on('mcp:request', (data) => {
-    // Aquí procesaremos la solicitud con IA y devolveremos la receta
     console.log('Recibido de Revit:', data);
   });
 
@@ -39,8 +38,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// --- SERVIR FRONTEND EN PRODUCCIÓN (Clave para ahorrar costos) ---
-// Cuando estemos en AWS (Docker), servimos los archivos estáticos de React
+// Server static files in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../../tad-web-frontend/dist')));
   
@@ -49,7 +47,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Iniciar servidor
+// Start server
 httpServer.listen(PORT, () => {
   console.log(`🚀 TAD Server corriendo en puerto ${PORT}`);
 });
