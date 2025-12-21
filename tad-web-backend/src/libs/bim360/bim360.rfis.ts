@@ -1,21 +1,33 @@
 import axios from 'axios';
+import { config } from '../../config';
+import { PaginationHelper } from '../../utils/general/pagination.helper';
 
-const RFIS_V2_URL = 'https://developer.api.autodesk.com/bim360/rfis/v2';
+// Base URL derived from environment configuration
+const RFIS_V2_URL = `${config.aps.baseUrl}/bim360/rfis/v2`;
 
 export const Bim360RfisLib = {
+
+  // ==========================================
+  // SECTION: RFIs (V2)
+  // ==========================================
+
+  /**
+   * Retrieves a list of RFIs from a specific container.
+   * Supports automatic pagination to fetch the complete list.
+   * Endpoint: GET /containers/{containerId}/rfis
+   */
   getRfis: async (token: string, containerId: string, filters?: any) => {
-    try {
-      const response = await axios.get(`${RFIS_V2_URL}/containers/${containerId}/rfis`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: filters
-      });
-      return response.data;
-    } catch (error: any) {
-      console.error('Error fetching BIM360 RFIs:', error.response?.data || error.message);
-      throw error;
-    }
+    return await PaginationHelper.fetchLimitOffset(
+      `${RFIS_V2_URL}/containers/${containerId}/rfis`,
+      token,
+      filters
+    );
   },
 
+  /**
+   * Retrieves detailed information about a single RFI.
+   * Endpoint: GET /containers/{containerId}/rfis/{rfiId}
+   */
   getRfiDetail: async (token: string, containerId: string, rfiId: string) => {
     try {
       const response = await axios.get(`${RFIS_V2_URL}/containers/${containerId}/rfis/${rfiId}`, {
@@ -23,6 +35,7 @@ export const Bim360RfisLib = {
       });
       return response.data;
     } catch (error: any) {
+      console.error('Error fetching RFI Detail:', error.response?.data || error.message);
       throw error;
     }
   }

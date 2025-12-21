@@ -1,15 +1,18 @@
 import axios from 'axios';
+import { config } from '../../config';
+import { PaginationHelper } from '../../utils/general/pagination.helper';
 
-const REVIEWS_URL = 'https://developer.api.autodesk.com/construction/reviews/v1';
+// Base URL derived from environment configuration
+const REVIEWS_URL = `${config.aps.baseUrl}/construction/reviews/v1`;
 
 export const AccReviewsLib = {
   
   // ==========================================
-  // WORKFLOWS (Flujos de Aprobación)
+  // SECTION: WORKFLOWS
   // ==========================================
 
   /**
-   * Obtiene todos los flujos de trabajo de aprobación del proyecto
+   * Retrieves all approval workflows configured for the project.
    * Endpoint: GET /projects/{projectId}/workflows
    */
   getWorkflows: async (token: string, projectId: string) => {
@@ -25,7 +28,7 @@ export const AccReviewsLib = {
   },
 
   /**
-   * Obtiene un flujo de trabajo específico por ID
+   * Retrieves a specific approval workflow by ID.
    * Endpoint: GET /projects/{projectId}/workflows/{workflowId}
    */
   getWorkflowDetail: async (token: string, projectId: string, workflowId: string) => {
@@ -41,28 +44,24 @@ export const AccReviewsLib = {
   },
 
   // ==========================================
-  // REVIEWS (Revisiones)
+  // SECTION: REVIEWS
   // ==========================================
 
   /**
-   * Obtiene la lista de revisiones en el proyecto
+   * Retrieves the list of reviews in the project.
+   * Supports automatic pagination to fetch all reviews.
    * Endpoint: GET /projects/{projectId}/reviews
    */
   getReviews: async (token: string, projectId: string, filters?: any) => {
-    try {
-      const response = await axios.get(`${REVIEWS_URL}/projects/${projectId}/reviews`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: filters
-      });
-      return response.data;
-    } catch (error: any) {
-      console.error('Error fetching Reviews:', error.response?.data || error.message);
-      throw error;
-    }
+    return await PaginationHelper.fetchLimitOffset(
+      `${REVIEWS_URL}/projects/${projectId}/reviews`,
+      token,
+      filters
+    );
   },
 
   /**
-   * Obtiene detalles de una revisión específica
+   * Retrieves details of a specific review.
    * Endpoint: GET /projects/{projectId}/reviews/{reviewId}
    */
   getReviewDetail: async (token: string, projectId: string, reviewId: string) => {
@@ -78,7 +77,7 @@ export const AccReviewsLib = {
   },
 
   /**
-   * Obtiene la estructura del flujo de trabajo asociado a una revisión específica
+   * Retrieves the workflow structure associated with a specific review.
    * Endpoint: GET /projects/{projectId}/reviews/{reviewId}/workflow
    */
   getReviewWorkflow: async (token: string, projectId: string, reviewId: string) => {
@@ -94,7 +93,7 @@ export const AccReviewsLib = {
   },
 
   /**
-   * Obtiene el progreso histórico de una revisión (quién aprobó, cuándo, etc.)
+   * Retrieves the historical progress of a review (approvals, dates, etc.).
    * Endpoint: GET /projects/{projectId}/reviews/{reviewId}/progress
    */
   getReviewProgress: async (token: string, projectId: string, reviewId: string) => {
@@ -110,7 +109,7 @@ export const AccReviewsLib = {
   },
 
   /**
-   * Obtiene los archivos (versiones) incluidos en la última ronda de revisión
+   * Retrieves the file versions included in the latest review round.
    * Endpoint: GET /projects/{projectId}/reviews/{reviewId}/versions
    */
   getReviewVersions: async (token: string, projectId: string, reviewId: string) => {

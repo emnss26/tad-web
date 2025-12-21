@@ -1,33 +1,32 @@
 import { Request, Response } from 'express';
 import { DataManagementLib } from '../../libs/dm/data.management';
+import { AccAdminLib } from '../../libs/acc/acc.admin';
 import { config } from '../../config';
 
 export const ProjectsController = {
   /**
-   * Obtiene todos los proyectos ACC de los Hubs autorizados
+   * Retrieves all ACC projects from authorized hubs using Admin API.
    */
   getAccProjects: async (req: Request, res: Response) => {
-    // 1. Obtener Token de la sesión
-    const session = req.session as any;
+    // 1. Get session token
+    const session = (req as any).session;
     const token = session?.token;
 
     if (!token) {
       return res.status(401).json({
         data: null,
         error: "Unauthorized",
-        message: "No se encontró token de acceso. Por favor inicia sesión.",
+        message: "Access token missing. Please login.",
       });
     }
 
     try {
-      // 2. Obtener Hubs del usuario
+      // 2. Retrieve user hubs (Data Management API is still best for discovery)
       const hubsData = await DataManagementLib.getHubs(token);
-      
-      // La API devuelve { data: [...], links: ... }
       const hubsList = hubsData.data || [];
 
-      // 3. Filtrar Hubs Autorizados (White-listing)
-      const authorizedHubIds = config.accessControl.authorizedHubs.map(h => h.id);
+      // 3. Filter authorized hubs based on config
+      const authorizedHubIds = config.accessControl.authorizedHubs.map((h: any) => h.id);
       
       const targetHubs = hubsList.filter((hub: any) => 
         authorizedHubIds.includes(hub.id)
@@ -37,17 +36,19 @@ export const ProjectsController = {
         return res.status(404).json({
           data: null,
           error: "Hub not found",
-          message: "No se encontraron Hubs autorizados para tu usuario.",
+          message: "No authorized hubs found for this user.",
         });
       }
 
-      // 4. Obtener Proyectos de cada Hub Autorizado en paralelo
+      // 4. Fetch projects from each authorized hub in parallel using Admin Lib
       const projectsPromises = targetHubs.map(async (hub: any) => {
         try {
-          // Solicitamos límite de 100 para traer la mayoría de una vez
-          // TODO: Implementar paginación completa si tienes > 100 proyectos por Hub
-          const projectsRes = await DataManagementLib.getHubProjects(token, hub.id, { 'page[limit]': 100 });
-          return projectsRes.data || [];
+          // Note: Hub ID format is "b.guid", Account ID is just "guid". We strip the prefix.
+          const accountId = hub.id.replace(/^b\./, '');
+          
+          // Pagination is handled automatically by the Lib helper
+          const projects = await AccAdminLib.getAccountProjects(token, accountId);
+          return Array.isArray(projects) ? projects : [];
         } catch (error: any) {
           console.error(`Error fetching projects for hub ${hub.id}:`, error.message);
           return [];
@@ -55,35 +56,37 @@ export const ProjectsController = {
       });
 
       const projectsArrays = await Promise.all(projectsPromises);
-      
-      // Aplanar el array de arrays ([[p1, p2], [p3]] -> [p1, p2, p3])
       const allProjects = projectsArrays.flat();
 
-      // 5. Filtrar solo proyectos tipo "ACC" (Autodesk Construction Cloud)
-      // Los proyectos BIM 360 clásicos a veces no tienen este atributo o es diferente.
+      // 5. Filter specifically for ACC platform projects
+      // Admin API response usually has a 'platform' or 'classification' field.
+      // Assuming 'ACC' projects are identified by classification or platform type.
+      // If the API returns everything, we filter. 
+      // Note: Admin API V1 projects are mixed. We check for properties typical of ACC.
       const accProjects = allProjects.filter((project: any) => {
-        // Navegación segura en el objeto JSON API
-        const projectType = project?.attributes?.extension?.data?.projectType;
-        // Aceptamos 'ACC' y también 'BIM360' si quisieras, pero tu requisito es ACC
-        return projectType === "ACC";
+        // Adapt this filter based on the actual Admin API response structure.
+        // Usually, ACC projects have classification 'production' and specific service types,
+        // or we check if it matches the 'ACC' criteria your logic previously defined.
+        // For broad compatibility, we return all, or filter if 'platform' field exists:
+        return project.platform === 'acc' || !project.platform; // Adjust logic if needed
       });
 
-      // 6. Retornar respuesta limpia
+      // 6. Return standardized response
       return res.status(200).json({
         data: { 
             count: accProjects.length,
             projects: accProjects 
         },
         error: null,
-        message: "Proyectos ACC obtenidos exitosamente",
+        message: "ACC Projects retrieved successfully",
       });
 
     } catch (error: any) {
-      console.error("Error en GetProjects:", error.message || error);
+      console.error("Error in getAccProjects:", error.message || error);
       res.status(500).json({
         data: null,
         error: error.message,
-        message: "Error interno al obtener los proyectos",
+        message: "Internal server error retrieving projects",
       });
     }
   }

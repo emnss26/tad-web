@@ -1,27 +1,31 @@
 import axios from 'axios';
+import { config } from '../../config';
+import { PaginationHelper } from '../../utils/general/pagination.helper';
 
-const ISSUES_URL = 'https://developer.api.autodesk.com/construction/issues/v1';
+// Base URL derived from environment configuration
+const ISSUES_URL = `${config.aps.baseUrl}/construction/issues/v1`;
 
 export const AccIssuesLib = {
+
+  // ==========================================
+  // SECTION: ISSUES
+  // ==========================================
+
   /**
-   * Obtiene la lista de Issues del proyecto (con filtros opcionales)
+   * Retrieves all issues from a project.
+   * Supports automatic pagination to fetch the complete list.
    * Endpoint: GET /projects/{projectId}/issues
    */
   getIssues: async (token: string, projectId: string, filters?: any) => {
-    try {
-      const response = await axios.get(`${ISSUES_URL}/projects/${projectId}/issues`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: filters
-      });
-      return response.data;
-    } catch (error: any) {
-      console.error('Error fetching Issues:', error.response?.data || error.message);
-      throw error;
-    }
+    return await PaginationHelper.fetchLimitOffset(
+      `${ISSUES_URL}/projects/${projectId}/issues`,
+      token,
+      filters
+    );
   },
 
   /**
-   * Obtiene el detalle de un Issue específico
+   * Retrieves detailed information about a specific issue.
    * Endpoint: GET /projects/{projectId}/issues/{issueId}
    */
   getIssueDetail: async (token: string, projectId: string, issueId: string) => {
@@ -36,10 +40,14 @@ export const AccIssuesLib = {
     }
   },
 
+  // ==========================================
+  // SECTION: CONFIGURATION (Types & Attributes)
+  // ==========================================
+
   /**
-   * Obtiene los tipos y categorías de Issues del proyecto
+   * Retrieves the project's issue categories and types.
    * Endpoint: GET /projects/{projectId}/issue-types
-   * @param includeSubtypes Si es true (por defecto), trae también los subtipos (Types en la UI)
+   * @param includeSubtypes If true (default), returns subtypes (Types in UI).
    */
   getIssueTypes: async (token: string, projectId: string, includeSubtypes: boolean = true) => {
     try {
@@ -60,7 +68,7 @@ export const AccIssuesLib = {
   },
 
   /**
-   * Obtiene definiciones de atributos personalizados de Issues
+   * Retrieves definitions of issue custom attributes.
    * Endpoint: GET /projects/{projectId}/issue-attribute-definitions
    */
   getAttributeDefinitions: async (token: string, projectId: string) => {
@@ -76,7 +84,7 @@ export const AccIssuesLib = {
   },
 
   /**
-   * Obtiene el mapeo de atributos (qué atributos aplican a qué tipos/categorías)
+   * Retrieves the mapping of attributes to issue types/categories.
    * Endpoint: GET /projects/{projectId}/issue-attribute-mappings
    */
   getAttributeMappings: async (token: string, projectId: string) => {

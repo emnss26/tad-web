@@ -3,6 +3,7 @@ import { ProjectsController } from '../controllers/acc/projects.controller';
 
 const router = Router();
 
-router.get('/', ProjectsController.getAccProjects);
+// GET /api/acc/projects
+router.get('/projects', ProjectsController.getAccProjects);
 
 export default router;

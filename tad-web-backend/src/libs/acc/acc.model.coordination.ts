@@ -1,23 +1,26 @@
 import axios from 'axios';
+import { config } from '../../config';
 
-const MODEL_SET_URL = 'https://developer.api.autodesk.com/bim360/modelset/v3';
-const CLASH_URL = 'https://developer.api.autodesk.com/bim360/clash/v3';
+// Base URLs derived from environment configuration
+const MODEL_SET_URL = `${config.aps.baseUrl}/bim360/modelset/v3`;
+const CLASH_URL = `${config.aps.baseUrl}/bim360/clash/v3`;
 
 export const AccModelCoordinationLib = {
 
   // ==========================================
-  // MODEL SETS (Conjuntos de Modelos)
+  // SECTION: MODEL SETS
   // ==========================================
 
   /**
-   * Obtiene la lista de Model Sets en un contenedor.
-   * Endpoint: GET /containers/:containerId/modelsets
+   * Retrieves a list of Model Sets in a container.
+   * Note: This API uses 'pageLimit' and 'continuationToken' for pagination.
+   * Endpoint: GET /containers/{containerId}/modelsets
    */
   getModelSets: async (token: string, containerId: string, filters?: any) => {
     try {
       const response = await axios.get(`${MODEL_SET_URL}/containers/${containerId}/modelsets`, {
         headers: { Authorization: `Bearer ${token}` },
-        params: filters // Soporta pageLimit, offset, etc.
+        params: filters // Supports pageLimit, continuationToken
       });
       return response.data;
     } catch (error: any) {
@@ -27,8 +30,8 @@ export const AccModelCoordinationLib = {
   },
 
   /**
-   * Obtiene un Model Set específico por ID.
-   * Endpoint: GET /containers/:containerId/modelsets/:modelSetId
+   * Retrieves a specific Model Set by ID.
+   * Endpoint: GET /containers/{containerId}/modelsets/{modelSetId}
    */
   getModelSetDetail: async (token: string, containerId: string, modelSetId: string) => {
     try {
@@ -43,8 +46,8 @@ export const AccModelCoordinationLib = {
   },
 
   /**
-   * Obtiene el estado de un trabajo (Job) del Model Set (útil tras crear/actualizar sets).
-   * Endpoint: GET /containers/:containerId/modelsets/:modelSetId/jobs/:jobId
+   * Retrieves the status of a Model Set Job (useful after creating/updating sets).
+   * Endpoint: GET /containers/{containerId}/modelsets/{modelSetId}/jobs/{jobId}
    */
   getModelSetJob: async (token: string, containerId: string, modelSetId: string, jobId: string) => {
     try {
@@ -59,12 +62,12 @@ export const AccModelCoordinationLib = {
   },
 
   /**
-   * Obtiene una captura de pantalla (screenshot) asociada a una vista.
-   * Endpoint: GET /containers/:containerId/modelsets/:modelSetId/screenshots/:screenShotId
+   * Retrieves a screenshot associated with a view.
+   * Endpoint: GET /containers/{containerId}/modelsets/{modelSetId}/screenshots/{screenShotId}
    */
   getScreenshot: async (token: string, containerId: string, modelSetId: string, screenshotId: string) => {
     try {
-      // Nota: Si esto devuelve una imagen binaria, se debería ajustar responseType a 'arraybuffer' o 'stream'
+      // Note: If this returns a binary image, responseType should be handled by the caller or adjusted here.
       const response = await axios.get(`${MODEL_SET_URL}/containers/${containerId}/modelsets/${modelSetId}/screenshots/${screenshotId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -76,12 +79,12 @@ export const AccModelCoordinationLib = {
   },
 
   // ==========================================
-  // VERSIONS (Versiones del Model Set)
+  // SECTION: VERSIONS
   // ==========================================
 
   /**
-   * Obtiene la lista de versiones de un Model Set.
-   * Endpoint: GET /containers/:containerId/modelsets/:modelSetId/versions
+   * Retrieves a list of versions for a Model Set.
+   * Endpoint: GET /containers/{containerId}/modelsets/{modelSetId}/versions
    */
   getModelSetVersions: async (token: string, containerId: string, modelSetId: string, filters?: any) => {
     try {
@@ -97,8 +100,8 @@ export const AccModelCoordinationLib = {
   },
 
   /**
-   * Obtiene la última versión de un Model Set.
-   * Endpoint: GET /containers/:containerId/modelsets/:modelSetId/versions/latest
+   * Retrieves the latest version of a Model Set.
+   * Endpoint: GET /containers/{containerId}/modelsets/{modelSetId}/versions/latest
    */
   getLatestVersion: async (token: string, containerId: string, modelSetId: string) => {
     try {
@@ -113,12 +116,12 @@ export const AccModelCoordinationLib = {
   },
 
   // ==========================================
-  // CLASH TESTS (Pruebas de Conflicto)
+  // SECTION: CLASH TESTS
   // ==========================================
 
   /**
-   * Obtiene los resúmenes de Clash Tests para un Model Set completo.
-   * Endpoint: GET /containers/:containerId/modelsets/:modelSetId/tests
+   * Retrieves clash test summaries for a Model Set.
+   * Endpoint: GET /containers/{containerId}/modelsets/{modelSetId}/tests
    */
   getModelSetTests: async (token: string, containerId: string, modelSetId: string, filters?: any) => {
     try {
@@ -134,8 +137,8 @@ export const AccModelCoordinationLib = {
   },
 
   /**
-   * Obtiene los resúmenes de Clash Tests para una versión específica.
-   * Endpoint: GET /containers/:containerId/modelsets/:modelSetId/versions/:version/tests
+   * Retrieves clash test summaries for a specific version.
+   * Endpoint: GET /containers/{containerId}/modelsets/{modelSetId}/versions/{version}/tests
    */
   getModelSetVersionTests: async (token: string, containerId: string, modelSetId: string, version: string, filters?: any) => {
     try {
@@ -151,8 +154,8 @@ export const AccModelCoordinationLib = {
   },
 
   /**
-   * Obtiene el detalle de un Test de Conflicto específico.
-   * Endpoint: GET /containers/:containerId/tests/:testId
+   * Retrieves details of a specific Clash Test.
+   * Endpoint: GET /containers/{containerId}/tests/{testId}
    */
   getClashTestDetail: async (token: string, containerId: string, testId: string) => {
     try {
@@ -167,9 +170,9 @@ export const AccModelCoordinationLib = {
   },
 
   /**
-   * Obtiene los recursos (archivos de resultados) de un Test.
-   * Devuelve URLs firmadas para descargar el JSON/GZIP con los conflictos.
-   * Endpoint: GET /containers/:containerId/tests/:testId/resources
+   * Retrieves resources (result files) for a Clash Test.
+   * Returns signed URLs to download JSON/GZIP clash data.
+   * Endpoint: GET /containers/{containerId}/tests/{testId}/resources
    */
   getClashTestResources: async (token: string, containerId: string, testId: string) => {
     try {

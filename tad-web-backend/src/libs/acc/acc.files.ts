@@ -1,10 +1,18 @@
 import axios from 'axios';
+import { config } from '../../config';
 
-const DOCS_URL = 'https://developer.api.autodesk.com/bim360/docs/v1';
+// Base URL derived from environment configuration
+const DOCS_URL = `${config.aps.baseUrl}/bim360/docs/v1`;
 
 export const AccDocsLib = {
+  
+  // ==========================================
+  // SECTION: FOLDER PERMISSIONS
+  // ==========================================
+
   /**
-   * Obtiene permisos de una carpeta
+   * Retrieves information about permissions assigned to users, roles, and companies for a folder.
+   * Endpoint: GET /projects/{projectId}/folders/{folderId}/permissions
    */
   getFolderPermissions: async (token: string, projectId: string, folderId: string) => {
     try {
@@ -18,8 +26,13 @@ export const AccDocsLib = {
     }
   },
 
+  // ==========================================
+  // SECTION: CUSTOM ATTRIBUTES (Naming Standards / Metadata)
+  // ==========================================
+
   /**
-   * Obtiene definiciones de atributos personalizados de una carpeta
+   * Retrieves a complete list of custom attribute definitions for a specific folder.
+   * Endpoint: GET /projects/{projectId}/folders/{folderId}/custom-attribute-definitions
    */
   getFolderAttributeDefinitions: async (token: string, projectId: string, folderId: string) => {
     try {
@@ -28,22 +41,31 @@ export const AccDocsLib = {
       });
       return response.data;
     } catch (error: any) {
+      console.error('Error fetching Attribute Definitions:', error.response?.data || error.message);
       throw error;
     }
   },
 
   /**
-   * Actualiza atributos personalizados en lote (Batch Update)
+   * Assigns values to custom attributes for multiple documents (Batch Update).
+   * Also used to clear custom attribute values.
+   * Endpoint: POST /projects/{projectId}/versions/{versionId}/custom-attributes:batch-update
    */
   batchUpdateAttributes: async (token: string, projectId: string, versionId: string, payload: any) => {
     try {
       const response = await axios.post(
         `${DOCS_URL}/projects/${projectId}/versions/${versionId}/custom-attributes:batch-update`,
         payload,
-        { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`, 
+            'Content-Type': 'application/json' 
+          } 
+        }
       );
       return response.data;
     } catch (error: any) {
+      console.error('Error updating Custom Attributes:', error.response?.data || error.message);
       throw error;
     }
   }

@@ -1,41 +1,39 @@
 import axios from 'axios';
+import { config } from '../../config';
+import { PaginationHelper } from '../../utils/general/pagination.helper';
 
-const RFIS_V3_URL = 'https://developer.api.autodesk.com/construction/rfis/v3';
-const BIM360_V2_URL = 'https://developer.api.autodesk.com/bim360/rfis/v2';
+// Base URLs derived from environment configuration
+const RFIS_V3_URL = `${config.aps.baseUrl}/construction/rfis/v3`;
+const BIM360_V2_URL = `${config.aps.baseUrl}/bim360/rfis/v2`;
 
 export const AccRfisLib = {
   
   // ==========================================
-  // LISTADO DE RFIs (Vía BIM 360 V2 API)
+  // SECTION: RFI LIST (Via BIM 360 V2 API)
   // ==========================================
 
   /**
-   * Obtiene la lista de RFIs usando el endpoint de BIM 360 V2 (Compatible con ACC).
-   * Nota: Requiere el ID del Contenedor de RFIs (A veces es el mismo ProjectId, o se busca en el perfil del proyecto).
-   * Endpoint: GET /bim360/rfis/v2/containers/:containerId/rfis
+   * Retrieves the list of RFIs using the BIM 360 V2 endpoint (ACC Compatible).
+   * Supports automatic pagination to fetch the complete list.
+   * Note: This usually requires the RFI Container ID, but often the Project ID works 
+   * in hybrid integrations. If it fails, the container ID must be looked up first.
+   * Endpoint: GET /bim360/rfis/v2/containers/{containerId}/rfis
    */
   getRfis: async (token: string, projectId: string, filters?: any) => {
-    try {
-      // Nota: En muchas integraciones híbridas, se usa el projectId directamente como containerId
-      // Si falla, se debería buscar primero el "rfiContainerId" del proyecto.
-      const response = await axios.get(`${BIM360_V2_URL}/containers/${projectId}/rfis`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: filters // Soporta limit, offset, sort, etc.
-      });
-      return response.data;
-    } catch (error: any) {
-      console.error('Error fetching RFIs list (V2):', error.response?.data || error.message);
-      // Retornamos array vacío si no hay datos para evitar romper el frontend
-      return { data: [], pagination: {} }; 
-    }
+    // We use the Helper because V2 API supports limit/offset
+    return await PaginationHelper.fetchLimitOffset(
+      `${BIM360_V2_URL}/containers/${projectId}/rfis`,
+      token,
+      filters
+    );
   },
 
   // ==========================================
-  // DETALLES Y CONFIGURACIÓN (ACC V3 API)
+  // SECTION: DETAILS & CONFIGURATION (ACC V3 API)
   // ==========================================
 
   /**
-   * Obtiene detalles de un RFI específico
+   * Retrieves details of a specific RFI.
    * Endpoint: GET /projects/{projectId}/rfis/{rfiId}
    */
   getRfiDetail: async (token: string, projectId: string, rfiId: string) => {
@@ -51,7 +49,7 @@ export const AccRfisLib = {
   },
 
   /**
-   * Obtiene el identificador personalizado actual y el siguiente disponible
+   * Retrieves the current and next available custom identifier.
    * Endpoint: GET /projects/{projectId}/rfis/custom-identifier
    */
   getCustomIdentifier: async (token: string, projectId: string) => {
@@ -67,7 +65,7 @@ export const AccRfisLib = {
   },
 
   /**
-   * Obtiene la configuración del flujo de trabajo (Workflow) del proyecto
+   * Retrieves the workflow configuration for the project.
    * Endpoint: GET /projects/{projectId}/workflow
    */
   getProjectWorkflow: async (token: string, projectId: string) => {
@@ -83,7 +81,7 @@ export const AccRfisLib = {
   },
 
   /**
-   * Obtiene tipos de RFI configurados
+   * Retrieves configured RFI types.
    * Endpoint: GET /projects/{projectId}/rfi-types
    */
   getRfiTypes: async (token: string, projectId: string) => {
@@ -93,12 +91,13 @@ export const AccRfisLib = {
       });
       return response.data;
     } catch (error: any) {
+      console.error('Error fetching RFI Types:', error.response?.data || error.message);
       throw error;
     }
   },
 
   /**
-   * Obtiene atributos personalizados de RFIs
+   * Retrieves RFI custom attributes.
    * Endpoint: GET /projects/{projectId}/attributes
    */
   getCustomAttributes: async (token: string, projectId: string) => {
@@ -108,6 +107,7 @@ export const AccRfisLib = {
       });
       return response.data;
     } catch (error: any) {
+      console.error('Error fetching RFI Custom Attributes:', error.response?.data || error.message);
       throw error;
     }
   }
