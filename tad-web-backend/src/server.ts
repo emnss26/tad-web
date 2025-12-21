@@ -5,6 +5,8 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import path from 'path';
 
+import accRouter from './routes/acc.router';
+
 // Evironment variables
 dotenv.config();
 
