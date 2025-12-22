@@ -28,7 +28,7 @@ export const getThreeLeggedAuth: RequestHandler<any, any, any, ThreeLeggedQuery>
                 console.error('Session save error:', err);
                 return res.redirect(`${config.urls.frontend}/error?message=Session save failed`);
             }
-            res.redirect(`${config.urls.frontend}/platform`);
+            res.redirect(`${config.urls.frontend}/hub/select-platform`);
         });
 
     } catch (error) {

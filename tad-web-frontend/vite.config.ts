@@ -11,5 +11,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080', // Asegúrate de que este es el puerto de tu backend
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  }
 })
-

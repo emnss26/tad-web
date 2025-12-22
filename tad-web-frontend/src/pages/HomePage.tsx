@@ -13,11 +13,11 @@ export default function HomePage() {
           
           <div className="text-left space-y-8">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground">
-              Digital Architecture <span className="text-primary block mt-2">Reimagined</span>
+              BIM <span className="text-primary block mt-2">Reimagined</span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl">
-              TAD HUB bridges the gap between BIM and VDC. Connect your data, automate your workflows, and access
+              TAD bridges the gap between BIM and all project teams. Connect your data, automate your workflows, and access
               powerful tools in one unified platform.
             </p>
 
