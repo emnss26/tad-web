@@ -5,17 +5,18 @@ import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
+import createMemoryStore from 'memorystore'; // Librería para gestión eficiente de RAM
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import path from 'path';
 import { config } from './config';
 
-// Routes
+// Routers
 import accRouter from './routes/acc.router';
 import authRouter from './routes/auth.router';
 
 // ----------------------------------------------------------------------
-// Type Definitions
+// 1. Definición de Tipos (TypeScript)
 // ----------------------------------------------------------------------
 declare module 'express-session' {
   interface SessionData {
@@ -26,10 +27,12 @@ declare module 'express-session' {
 }
 
 // ----------------------------------------------------------------------
-// Server Initialization
+// 2. Inicialización del Servidor
 // ----------------------------------------------------------------------
 const app = express();
 const httpServer = createServer(app);
+const MemoryStore = createMemoryStore(session); // Inicializamos el store optimizado
+
 const io = new Server(httpServer, {
   cors: { 
     origin: config.urls.frontend,
@@ -38,114 +41,116 @@ const io = new Server(httpServer, {
 });
 
 // ----------------------------------------------------------------------
-// Security & Utility Middlewares
+// 3. Middlewares de Seguridad y Utilidad
 // ----------------------------------------------------------------------
 
-// 1. HTTP Headers Security (Helmet)
-// Sets various HTTP headers to secure the app (XSS filter, no-sniff, etc.)
+// A. Seguridad de Cabeceras HTTP (Protección XSS, Sniffing, etc.)
 app.use(helmet({
-  contentSecurityPolicy: config.env === 'production' ? undefined : false, // Disable CSP in dev if needed for Swagger/Tools
-  crossOriginResourcePolicy: { policy: "cross-origin" } // Allow resources to be loaded if needed
+  contentSecurityPolicy: config.env === 'production' ? undefined : false, 
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// 2. Compression (Gzip)
+// B. Compresión Gzip (Mejora velocidad y reduce ancho de banda)
 app.use(compression());
 
-// 3. CORS Configuration
+// C. Configuración CORS (Permite cookies entre Front y Back)
 app.use(cors({
   origin: config.urls.frontend,
-  credentials: true // Mandatory for sessions/cookies
+  credentials: true 
 }));
 
-// 4. Rate Limiting (DDoS / Brute Force Protection)
-// Limit: 100 requests per 15 minutes per IP
+// D. Limitación de Tasa (Protección anti-DDoS básica)
+// Límite: 200 peticiones por 15 min por IP
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  max: 100, 
+  max: 200, 
   standardHeaders: true, 
   legacyHeaders: false, 
-  message: 'Too many requests from this IP, please try again after 15 minutes.'
+  message: 'Demasiadas peticiones desde esta IP, por favor intenta más tarde.'
 });
 app.use('/api', apiLimiter);
 
-// 5. Body Parsers & Cookie Parser
-app.use(express.json({ limit: '10mb' })); // Limit body size to prevent overflow attacks
+// E. Parsers de Cuerpo y Cookies
+app.use(express.json({ limit: '10mb' })); 
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // ----------------------------------------------------------------------
-// Session Configuration
+// 4. Configuración de Sesión (Optimizada para AWS Low-Cost)
 // ----------------------------------------------------------------------
 if (config.env === 'production') {
-  app.set('trust proxy', 1); // Required for secure cookies behind proxies (AWS/Heroku/Render)
+  app.set('trust proxy', 1); // Necesario para AWS (Load Balancers/Nginx)
 }
 
 app.use(session({
   secret: config.sessionSecret,
   resave: false,
   saveUninitialized: false,
+  // Aquí está la magia para no gastar dinero extra:
+  store: new MemoryStore({
+    checkPeriod: 86400000 // Elimina sesiones expiradas cada 24h para liberar RAM
+  }),
   cookie: {
-    httpOnly: true, // Mitigates XSS cookie theft
-    secure: config.env === 'production', // HTTPS required in production
-    maxAge: 60 * 60 * 1000, // 1 hour
+    httpOnly: true, // Seguridad: JS del front no puede leer la cookie
+    secure: config.env === 'production', // Solo HTTPS en producción
+    maxAge: 60 * 60 * 1000, // 1 hora de vida
     sameSite: config.env === 'production' ? 'none' : 'lax'
   }
 }));
 
 // ----------------------------------------------------------------------
-// Routes
+// 5. Rutas de la API
 // ----------------------------------------------------------------------
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', service: 'TAD Cloud Core', env: config.env });
 });
 
-// API Endpoints
 app.use('/api/auth', authRouter);
 app.use('/api/acc', accRouter);
 
 // ----------------------------------------------------------------------
-// Socket.IO Logic
+// 6. Lógica de WebSockets (Socket.IO)
 // ----------------------------------------------------------------------
 io.on('connection', (socket) => {
-  console.log('[Socket] Client connected:', socket.id);
+  console.log('[Socket] Cliente conectado:', socket.id);
   
   socket.on('mcp:request', (data) => {
-    console.log('[Socket] Received from Revit:', data);
+    console.log('[Socket] Recibido de Revit:', data);
   });
 
   socket.on('disconnect', () => {
-    console.log('[Socket] Client disconnected:', socket.id);
+    console.log('[Socket] Cliente desconectado:', socket.id);
   });
 });
 
 // ----------------------------------------------------------------------
-// Static Files (Production Only)
+// 7. Archivos Estáticos (Solo Producción)
 // ----------------------------------------------------------------------
 if (config.env === 'production') {
   const staticPath = path.join(__dirname, '../../tad-web-frontend/dist');
   app.use(express.static(staticPath));
   
-  // SPA Fallback: Send index.html for any unknown route
+  // SPA Fallback: Cualquier ruta no reconocida va al index.html
   app.get('*', (req, res) => {
     res.sendFile(path.join(staticPath, 'index.html'));
   });
 }
 
 // ----------------------------------------------------------------------
-// Global Error Handler
+// 8. Manejo Global de Errores (Evita caídas del servidor)
 // ----------------------------------------------------------------------
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('[ServerError]', err.stack || err);
   res.status(err.status || 500).json({
     data: null,
     error: 'Internal Server Error',
-    message: config.env === 'production' ? 'Something went wrong' : err.message
+    message: config.env === 'production' ? 'Ha ocurrido un error inesperado' : err.message
   });
 });
 
 // ----------------------------------------------------------------------
-// Start Server
+// 9. Iniciar Servidor
 // ----------------------------------------------------------------------
 httpServer.listen(config.port, () => {
-  console.log(`🚀 TAD Server running on port ${config.port} | Env: ${config.env}`);
+  console.log(`🚀 TAD Server corriendo en puerto ${config.port} | Env: ${config.env}`);
 });
