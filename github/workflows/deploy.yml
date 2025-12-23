@@ -34,15 +34,18 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          # Detener el contenedor actual
+          # 1. Crear el archivo .env en el servidor con el secreto
+          # (Asegúrate de haber creado el secreto ENV_FILE en GitHub con todo el contenido de tu .env)
+          echo "${{ secrets.ENV_FILE }}" > .env
+
+          # 2. Limpieza
           docker stop tad-app || true
           docker rm tad-app || true
           
-          # Descargar la nueva imagen
+          # 3. Descargar imagen
           docker pull ${{ secrets.DOCKER_USERNAME }}/tad-web:latest
           
-          # Correr el nuevo contenedor
-          # NOTA: Aquí inyectamos las variables de entorno reales del servidor
+          # 4. Correr contenedor
           docker run -d \
             --name tad-app \
             -p 80:8080 \
