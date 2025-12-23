@@ -43,7 +43,7 @@ export default function ACCProjectsPage() {
           if (response.status === 401) {
             throw new Error("Session expired. Please login again.");
           }
-          throw new Error("Failed to load projects.");
+          throw new Error("Failed to load all projects.");
         }
 
         const json = await response.json();
