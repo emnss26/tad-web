@@ -5,26 +5,28 @@ on:
     branches: [ "main" ]
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
 
-    # 1. Construir y Subir la imagen a Docker Hub
-    - name: Login to Docker Hub
+    - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and push
+    - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
         context: .
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/tad-web:latest
 
-    # 2. Conectar a AWS e instalar Docker (si no existe) + Desplegar
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
     - name: Deploy via SSH
       uses: appleboy/ssh-action@v1.0.0
       with:
@@ -32,19 +34,44 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          # 1. Crear el archivo .env en el servidor con el secreto
-          # (Asegúrate de haber creado el secreto ENV_FILE en GitHub con todo el contenido de tu .env)
+          # --- 1. INSTALACIÓN AUTOMÁTICA DE DOCKER (Si falta) ---
+          if ! command -v docker &> /dev/null; then
+            echo "⚠️ Docker no encontrado. Iniciando instalación..."
+            sudo apt-get update
+            sudo apt-get install -y ca-certificates curl gnupg
+            sudo install -m 0755 -d /etc/apt/keyrings
+            # Limpiar clave anterior si existe corrupta
+            sudo rm -f /etc/apt/keyrings/docker.gpg
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+            sudo chmod a+r /etc/apt/keyrings/docker.gpg
+            
+            echo \
+              "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+              "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+              sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+            
+            sudo apt-get update
+            sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+            sudo usermod -aG docker ubuntu
+            echo "✅ Docker instalado correctamente."
+          else
+            echo "✅ Docker ya estaba instalado."
+          fi
+
+          # --- 2. PREPARAR ENTORNO ---
+          # Inyectar variables desde GitHub Secrets
           echo "${{ secrets.ENV_FILE }}" > .env
 
-          # 2. Limpieza
-          docker stop tad-app || true
-          docker rm tad-app || true
+          # --- 3. DESPLIEGUE ---
+          # Usamos 'sudo' para garantizar permisos en esta sesión
+          sudo docker stop tad-app || true
+          sudo docker rm tad-app || true
           
-          # 3. Descargar imagen
-          docker pull ${{ secrets.DOCKER_USERNAME }}/tad-web:latest
+          # Descargar última versión
+          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/tad-web:latest
           
-          # 4. Correr contenedor
-          docker run -d \
+          # Arrancar contenedor en puerto 80 (público) -> 8080 (interno)
+          sudo docker run -d \
             --name tad-app \
             -p 80:8080 \
             --restart unless-stopped \
