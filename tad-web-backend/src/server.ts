@@ -46,7 +46,8 @@ const io = new Server(httpServer, {
 
 // A. Seguridad de Cabeceras HTTP (Protección XSS, Sniffing, etc.)
 app.use(helmet({
-  contentSecurityPolicy: config.env === 'production' ? undefined : false, 
+  
+  contentSecurityPolicy: false, 
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
