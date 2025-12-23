@@ -127,10 +127,12 @@ io.on('connection', (socket) => {
 // 7. Archivos Estáticos (Solo Producción)
 // ----------------------------------------------------------------------
 if (config.env === 'production') {
-  const staticPath = path.join(__dirname, '../../tad-web-frontend/dist');
+  // CAMBIO AQUÍ: Ahora apuntamos a una carpeta 'public' relativa al build
+  const staticPath = path.join(__dirname, '../public'); 
+  
   app.use(express.static(staticPath));
   
-  // SPA Fallback: Cualquier ruta no reconocida va al index.html
+  // SPA Fallback
   app.get('*', (req, res) => {
     res.sendFile(path.join(staticPath, 'index.html'));
   });
