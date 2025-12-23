@@ -34,7 +34,10 @@ export default function ACCProjectsPage() {
       try {
         setLoading(true);
         // Nota: En Vite, el proxy maneja /api, así que fetch('/api/...') va al backend
-        const response = await fetch("/api/acc/projects");
+        const response = await fetch("/api/acc/projects", {
+    
+            credentials: 'include' 
+        });
 
         if (!response.ok) {
           if (response.status === 401) {

@@ -1,24 +1,14 @@
 version: '3.8'
 
 services:
-  app:
+  tad-app:
+    container_name: tad-web-app
     build: .
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
       - PORT=8080
       - NODE_ENV=production
-      - FRONTEND_URL=http://localhost:8080
-      - BACKEND_BASE_URL=http://localhost:8080
-      # Variables de AWS (Las tomará de tu .env local si existe, o pégalas aquí para probar)
-      - AWS_REGION=us-east-1
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      # Tablas
-      - DYNAMODB_TABLE_MASTER=TadMaster
-      - DYNAMODB_TABLE_PROJECTS=TadProjectData
-      - DYNAMODB_TABLE_MODELS=TadModelData
-      # Autodesk (Pega tus credenciales aquí para la prueba)
-      - APS_CLIENT_ID=${APS_CLIENT_ID}
-      - APS_CLIENT_SECRET=${APS_CLIENT_SECRET}
-      - APS_CALLBACK_URL=http://localhost:8080/api/auth/three-legged
+    restart: always

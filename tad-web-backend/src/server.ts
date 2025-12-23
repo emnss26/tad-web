@@ -79,22 +79,27 @@ app.use(cookieParser());
 // 4. Configuración de Sesión (Optimizada para AWS Low-Cost)
 // ----------------------------------------------------------------------
 if (config.env === 'production') {
-  app.set('trust proxy', 1); // Necesario para AWS (Load Balancers/Nginx)
+  app.set('trust proxy', 1);
 }
+
+// Determinamos si estamos usando HTTPS (por ahora NO, así que forzamos false)
+// Cuando tengas dominio y certificado SSL, cambia esto a 'true'
+const useSecureCookies = false; 
 
 app.use(session({
   secret: config.sessionSecret,
   resave: false,
   saveUninitialized: false,
-  // Aquí está la magia para no gastar dinero extra:
   store: new MemoryStore({
-    checkPeriod: 86400000 // Elimina sesiones expiradas cada 24h para liberar RAM
+    checkPeriod: 86400000
   }),
   cookie: {
-    httpOnly: true, // Seguridad: JS del front no puede leer la cookie
-    secure: config.env === 'production', // Solo HTTPS en producción
-    maxAge: 60 * 60 * 1000, // 1 hora de vida
-    sameSite: config.env === 'production' ? 'none' : 'lax'
+    httpOnly: true, 
+    // CAMBIO AQUÍ: Desactivamos secure para que funcione en HTTP
+    secure: useSecureCookies, 
+    maxAge: 60 * 60 * 1000, 
+    // CAMBIO AQUÍ: 'none' requiere secure:true. Usamos 'lax' para HTTP.
+    sameSite: 'lax' 
   }
 }));
 
@@ -127,13 +132,11 @@ io.on('connection', (socket) => {
 // 7. Archivos Estáticos (Solo Producción)
 // ----------------------------------------------------------------------
 if (config.env === 'production') {
-  // CAMBIO AQUÍ: Ahora apuntamos a una carpeta 'public' relativa al build
-  const staticPath = path.join(__dirname, '../public'); 
-  
+  const staticPath = path.join(__dirname, '../public');
   app.use(express.static(staticPath));
   
-  // SPA Fallback
-  app.get('*', (req, res) => {
+  // SPA Fallback: Usamos Regex (/.*/) en lugar de string ('*') para evitar errores de path-to-regexp
+  app.get(/.*/, (req, res) => {
     res.sendFile(path.join(staticPath, 'index.html'));
   });
 }
