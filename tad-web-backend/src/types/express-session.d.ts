@@ -2,7 +2,9 @@ import 'express-session';
 
 declare module 'express-session' {
   interface SessionData {
-    token?: string; 
+    // CAMBIO AQUÍ: de 'token' a 'access_token'
+    access_token?: string; 
+    
     expires_in?: number;
     refresh_token?: string; 
   }
