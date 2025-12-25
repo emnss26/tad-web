@@ -1,8 +1,8 @@
 import { RequestHandler } from 'express';
-import { config } from '../config';
-import { getAPSThreeLeggedToken } from '../libs/auth/auth.three.legged';
-import { getAPSTwoLeggedToken } from '../libs/auth/auth.two.legged';
-import { getUserStatus } from '../libs/auth/auth.user.status';
+import { config } from '../../config';
+import { getAPSThreeLeggedToken } from '../../libs/auth/auth.three.legged';
+import { getAPSTwoLeggedToken } from '../../libs/auth/auth.two.legged';
+import { getUserStatus } from '../../libs/auth/auth.user.status';
 
 interface ThreeLeggedQuery {
   code?: string;

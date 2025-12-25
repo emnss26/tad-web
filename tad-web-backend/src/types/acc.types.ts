@@ -32,6 +32,26 @@ export interface IACCProjectAdminDetails {
   // Agrega más campos según descubras en la API
 }
 
+export interface IACCUser {
+  id: string;
+  email: string;
+  name: string;
+  firstName?: string;
+  lastName?: string;
+  status: string; // active, invited, etc.
+  companyName?: string;
+  companyId?: string;
+  roles?: Array<{ id: string; name: string }>;
+  accessLevels?: {
+    accountAdmin: boolean;
+    projectAdmin: boolean;
+    executive: boolean;
+  };
+  // Campos auxiliares para tu app
+  projectId?: string;
+  accountId?: string;
+}
+
 // --- ISSUES (Futuro) ---
 export interface IACCIssue {
   id: string;

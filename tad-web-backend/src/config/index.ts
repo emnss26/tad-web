@@ -62,7 +62,22 @@ export const config = {
       : DEFAULT_AUTHORIZED_HUBS,
   },
 
-  sessionSecret: env.SESSION_SECRET
+  sessionSecret: env.SESSION_SECRET,
+
+  // --- NUEVA SECCIÓN: AWS & DynamoDB ---
+  aws: {
+    // Leemos directo de process.env para no romper tu env.helper actual
+    region: process.env.AWS_REGION || 'us-east-1',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    dynamo: {
+      tableName: {
+        master: process.env.DYNAMODB_TABLE_MASTER || 'Tad_Master_DataBase',
+        projects: process.env.DYNAMODB_TABLE_PROJECTS || 'Tad_Project_DataBase',
+        models: process.env.DYNAMODB_TABLE_MODELS || 'Tad_Model_Data',
+      }
+    }
+  }
 };
 
 // Exportar default también por compatibilidad si lo necesitas

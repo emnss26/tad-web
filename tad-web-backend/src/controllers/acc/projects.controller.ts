@@ -4,20 +4,15 @@ import { AccAdminLib } from '../../libs/acc/acc.admin';
 import { getToken } from '../../utils/auth/auth.utils';
 import { config } from '../../config';
 
-export const ProjectsController = {
-  /**
-   * Retrieves all ACC projects from authorized hubs using Admin API.
-   */
-  getAccProjects: async (req: Request, res: Response) => {
-    // 1. Get session token
-    const session = (req as any).session;
-    const token = session?.token;
+export const GetAccProjects = async (req: Request, res: Response) => {
+   
+    const token = getToken(req);
 
     if (!token) {
       return res.status(401).json({
         data: null,
         error: "Unauthorized",
-        message: "Access token missing. Please login.",
+        message: "Authorization token is required. Please login again.",
       });
     }
 
@@ -58,18 +53,8 @@ export const ProjectsController = {
 
       const projectsArrays = await Promise.all(projectsPromises);
       const allProjects = projectsArrays.flat();
-
-      // 5. Filter specifically for ACC platform projects
-      // Admin API response usually has a 'platform' or 'classification' field.
-      // Assuming 'ACC' projects are identified by classification or platform type.
-      // If the API returns everything, we filter. 
-      // Note: Admin API V1 projects are mixed. We check for properties typical of ACC.
       const accProjects = allProjects.filter((project: any) => {
-        // Adapt this filter based on the actual Admin API response structure.
-        // Usually, ACC projects have classification 'production' and specific service types,
-        // or we check if it matches the 'ACC' criteria your logic previously defined.
-        // For broad compatibility, we return all, or filter if 'platform' field exists:
-        return project.platform === 'acc' || !project.platform; // Adjust logic if needed
+      return project.platform === 'acc' || !project.platform; 
       });
 
       // 6. Return standardized response
@@ -91,4 +76,3 @@ export const ProjectsController = {
       });
     }
   }
-};

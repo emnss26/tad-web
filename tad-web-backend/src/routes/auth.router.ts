@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getThreeLeggedAuth, getTwoLeggedAuth, postLogoutAuth, getUserStatusAuth  } from '../controllers/auth.controller';
+import { getThreeLeggedAuth, getTwoLeggedAuth, postLogoutAuth, getUserStatusAuth  } from '../controllers/auth/auth.controller';
 
 
 /**
