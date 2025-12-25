@@ -3,16 +3,23 @@ import { AccAdminLib } from '../../libs/acc/acc.admin';
 // --- 1. LÓGICA DE MAPEO DE USUARIOS ---
 
 /**
- * Recorre una lista de items (Issues), extrae los IDs de usuarios únicos
+ * Recorre una lista de items, extrae los IDs de usuarios únicos
  * y busca sus nombres en la API de Autodesk.
+ * @param fieldsToScan Lista de campos donde buscar IDs de usuario.
  */
-export const mapUserIdsToNames = async (token: string, projectId: string, items: any[]): Promise<Record<string, string>> => {
-  const userFields = ["createdBy", "assignedTo", "closedBy", "openedBy", "updatedBy", "ownerId"];
+export const mapUserIdsToNames = async (
+  token: string, 
+  projectId: string, 
+  items: any[],
+  // Añadimos este parámetro con los defaults de Issues, pero permitimos sobreescribir para RFIs
+  fieldsToScan: string[] = ["createdBy", "assignedTo", "closedBy", "openedBy", "updatedBy", "ownerId"]
+): Promise<Record<string, string>> => {
+  
   const userIds = new Set<string>();
 
-  // 1. Recolectar IDs únicos
+  // 1. Recolectar IDs únicos usando los campos dinámicos
   items.forEach(item => {
-    userFields.forEach(field => {
+    fieldsToScan.forEach(field => {
       if (item[field]) userIds.add(item[field]);
     });
   });
@@ -20,14 +27,13 @@ export const mapUserIdsToNames = async (token: string, projectId: string, items:
   const uniqueUserIds = Array.from(userIds);
   const userMap: Record<string, string> = {};
 
-  // 2. Buscar nombres en paralelo (Con manejo de errores individual)
+  // 2. Buscar nombres en paralelo
   await Promise.all(uniqueUserIds.map(async (userId) => {
     try {
       const user = await AccAdminLib.getProjectUserDetail(token, projectId, userId);
       const name = user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim();
       userMap[userId] = name || 'Unknown User';
     } catch (error) {
-      // Si el usuario ya no existe o falla la API, ponemos default
       userMap[userId] = 'Unknown User';
     }
   }));
