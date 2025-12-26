@@ -1,16 +1,15 @@
 import { Request, Response } from 'express';
 import { AccAdminLib } from '../../libs/acc/acc.admin';
 import { getToken } from '../../utils/auth/auth.utils';
-// import { DynamoLib } from '../../libs/db/dynamo.lib';  // Comentado para debugging
-// import { config } from '../../config'; // Comentado para debugging
+import { DynamoLib } from '../../libs/db/dynamo.lib'; 
+import { config } from '../../config';
 
 export const GetProjectUsers = async (req: Request, res: Response) => {
   try {
     const token = getToken(req);
     if (!token) return res.status(401).json({ error: "Unauthorized" });
 
-    // Debug Logs
-    console.log("[GetProjectUsers] Token presente.");
+    console.log ("Token", token )
 
     let { projectId } = req.params;
     
@@ -21,24 +20,23 @@ export const GetProjectUsers = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Bad Request", message: "Missing params" });
     }
 
-    console.log(`[GetProjectUsers] Fetching users for Project: ${projectId}`);
-
     // Fetch API
     const usersData = await AccAdminLib.getProjectUsers(token, projectId);
 
-    console.log(`[GetProjectUsers] Fetched ${usersData.length} users from Autodesk.`);
+    console.log("Users data", usersData)
 
-    // Mapeo de datos (Mantenemos esto para verificar que no haya errores de sintaxis aquí)
+    // Mapeo DB
     const enrichedUsers = usersData.map((user: any) => {
         const companyName = user.companyName || 'N/A';
         const rolesArray = user.roles || [];
         const roleNamesString = rolesArray.map((r: any) => r.name).join(', ') || 'No Role';
         
         return {
-            // Estructura de datos
-            projectId: projectId,          
-            service: `USER#${user.email}`, 
+            // --- LLAVES DYNAMODB CORREGIDAS ---
+            projectId: projectId,          // Partition Key (Antes pk)
+            service: `USER#${user.email}`, // Sort Key (Antes sk)
             
+            // Datos
             entityType: 'user',
             
             id: user.id,
@@ -54,21 +52,16 @@ export const GetProjectUsers = async (req: Request, res: Response) => {
         };
     });
 
-    // --- SECCIÓN DE BASE DE DATOS DESACTIVADA TEMPORALMENTE ---
-    /*
+    // Guardar DB
     if (enrichedUsers.length > 0) {
         DynamoLib.batchWrite(config.aws.dynamo.tableName.projects, enrichedUsers)
             .catch(err => console.error("[DynamoDB Users Error]:", err));
     }
-    */
-    // -----------------------------------------------------------
-
-    console.log("[GetProjectUsers] Sending response to frontend...");
 
     return res.status(200).json({
       data: { count: enrichedUsers.length, users: enrichedUsers },
       error: null,
-      message: "Project users fetched successfully (DB Sync Disabled)",
+      message: "Project users fetched and synced successfully",
     });
 
   } catch (error: any) {
