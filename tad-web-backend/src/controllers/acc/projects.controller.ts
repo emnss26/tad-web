@@ -5,7 +5,7 @@ import { getToken } from '../../utils/auth/auth.utils';
 import { config } from '../../config';
 
 export const GetAccProjects = async (req: Request, res: Response) => {
-   
+
     const token = getToken(req);
 
     if (!token) {

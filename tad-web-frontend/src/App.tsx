@@ -16,7 +16,9 @@ import HubLoginPage from '@/pages/tad-hub/HubLoginPage';
 // Pages - Hub
 import SelectPlatformPage from '@/pages/tad-hub/SelectPlatformPage';
 
+// ACC 
 import ACCProjectsPage from '@/pages/tad-hub/acc/ProjectsPage';
+import ACCProjectPage from '@/pages/tad-hub/acc/ProjectPage';
 
 function App() {
   return (
@@ -43,6 +45,9 @@ function App() {
         
         {/* Lista de Proyectos (ACC y BIM360) */}
         <Route path="/accprojects" element={<ACCProjectsPage />} />
+        <Route path="/bim360projects" element={<div>BIM360 Projects Placeholder</div>} />
+
+        <Route path="/accprojects/:accountId/:projectId" element={<ACCProjectPage />} />
         
 
         {/* -- Nivel 2: Con Sidebar (projectId existe en la URL) -- */}

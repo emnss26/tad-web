@@ -6,19 +6,18 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-// Definición de tipos para los proyectos que vienen del backend
+// Interfaz flexible para soportar diferentes respuestas del backend
 interface Project {
   id: string;
-  platform: string;
   name: string;
-  // Ajusta según la estructura real de tu backend si difiere
-  accountId?: string; // Si el backend lo devuelve plano
-  relationships?: {
-    hub: { data: { id: string } }; // Si viene anidado estilo JSON:API
-  };
-  attributes?: {
+  platform?: string;
+  accountId?: string; // Estructura plana
+  attributes?: {      // Estructura JSON:API
     name: string;
     description?: string;
+  };
+  relationships?: {   // Estructura JSON:API
+    hub: { data: { id: string } };
   };
 }
 
@@ -28,27 +27,30 @@ export default function ACCProjectsPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch de proyectos reales
+  
+
+  // Fetch de proyectos
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         setLoading(true);
-        // Nota: En Vite, el proxy maneja /api, así que fetch('/api/...') va al backend
-        const response = await fetch("/api/acc/projects", {
-    
-            credentials: 'include' 
+        // Usamos /api/acc/projects que va al proxy -> backend
+        const response = await fetch(`/api/acc/projects`, {
+            credentials: 'include' // IMPORTANTE: Para enviar cookies de sesión
         });
 
         if (!response.ok) {
           if (response.status === 401) {
             throw new Error("Session expired. Please login again.");
           }
-          throw new Error("Failed to load all projects.");
+          throw new Error("Failed to load projects.");
         }
 
         const json = await response.json();
-        // El backend devuelve { data: { projects: [] } } o similar. Ajustar según respuesta real.
+        // Soportamos { data: { projects: [] } } o { data: [] }
         const projectsList = json.data?.projects || json.data || []; 
+        
+        console.log("Projects loaded:", projectsList.length);
         setProjects(projectsList);
       } catch (err: any) {
         console.error("Error fetching ACC projects:", err);
@@ -61,9 +63,8 @@ export default function ACCProjectsPage() {
     fetchProjects();
   }, []);
 
-  // Filtrado simple por nombre en el cliente
+  // Filtrado por nombre
   const filteredProjects = projects.filter((p) => {
-    // Normalizamos nombre: puede venir en 'name' (plano) o 'attributes.name' (JSON:API)
     const name = p.name || p.attributes?.name || "Untitled Project";
     return name.toLowerCase().includes(searchTerm.toLowerCase());
   });
@@ -115,16 +116,26 @@ export default function ACCProjectsPage() {
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProjects.map((project) => {
-            // Extracción segura de datos (Soporta estructura plana o JSON:API)
+            // --- LÓGICA DE EXTRACCIÓN SEGURA DE IDs ---
             const name = project.name || project.attributes?.name || "Unknown Project";
             const description = project.attributes?.description || "No description available";
-            // El ID del hub/account es necesario para la URL. 
-            // Si el backend limpia la data, vendrá como 'accountId'. 
-            // Si viene crudo de Autodesk, estará en 'relationships.hub.data.id'.
-            // Aseguramos quitar el prefijo "b." si viene sucio para la URL limpia.
-            const rawHubId = project.accountId || project.relationships?.hub?.data?.id || "";
-            const accountId = rawHubId.replace(/^b\./, ''); 
-            const projectId = project.id.replace(/^b\./, ''); // Project ID también a veces trae prefijo
+            
+            // 1. Obtener Account ID (Hub ID)
+            // Puede venir plano ('accountId') o anidado ('relationships.hub.data.id')
+            let rawAccountId = project.accountId || project.relationships?.hub?.data?.id || "";
+            // Limpieza: Quitar prefijo 'b.' si existe
+            const cleanAccountId = rawAccountId.replace(/^b\./, '');
+
+            // 2. Obtener Project ID
+            let rawProjectId = project.id;
+            // Limpieza: Quitar prefijo 'b.' si existe
+            const cleanProjectId = rawProjectId.replace(/^b\./, '');
+
+            // Debug (Verificar en consola si algo falla)
+            // console.log(`Project: ${name} | Acc: ${cleanAccountId} | Proj: ${cleanProjectId}`);
+
+            // Validación de integridad
+            const isValid = cleanAccountId && cleanProjectId;
 
             return (
                 <Card key={project.id} className="p-6 hover:shadow-md transition-all duration-300 border-l-4 border-l-transparent hover:border-l-primary flex flex-col h-full">
@@ -132,7 +143,10 @@ export default function ACCProjectsPage() {
                         <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600 dark:text-blue-400">
                             <LayoutGrid className="h-6 w-6" />
                         </div>
-                        {/* Badge opcional si quisieras mostrar estatus */}
+                        {/* Badge de Plataforma (Opcional) */}
+                        <span className="text-xs font-medium px-2 py-1 bg-muted rounded capitalize">
+                            {project.platform || "ACC"}
+                        </span>
                     </div>
                     
                     <div className="flex-1 mb-6">
@@ -140,11 +154,18 @@ export default function ACCProjectsPage() {
                         <p className="text-sm text-muted-foreground line-clamp-2" title={description}>{description}</p>
                     </div>
                     
-                    <Button asChild className="w-full" variant="secondary">
-                        <Link to={`/accprojects/${accountId}/${projectId}`}>
-                            Open Dashboard
-                        </Link>
-                    </Button>
+                    {isValid ? (
+                        <Button asChild className="w-full" variant="secondary">
+                            {/* AQUÍ SE CONSTRUYE LA URL FINAL */}
+                            <Link to={`/accprojects/${cleanAccountId}/${cleanProjectId}`}>
+                                Open Dashboard
+                            </Link>
+                        </Button>
+                    ) : (
+                        <Button disabled className="w-full" variant="ghost">
+                            Invalid Data
+                        </Button>
+                    )}
                 </Card>
             );
         })}

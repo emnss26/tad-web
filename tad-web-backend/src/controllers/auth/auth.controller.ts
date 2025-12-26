@@ -99,3 +99,20 @@ export const getUserStatusAuth: RequestHandler = async (req, res, next) => {
         });
     }
 };
+
+export const getSystemConfig: RequestHandler = (req, res) => {
+    try {
+        const publicConfig = {
+            authorizedHubs: config.accessControl.authorizedHubs
+        };
+
+        res.status(200).json({
+            data: publicConfig,
+            error: null,
+            message: "System configuration retrieved"
+        });
+    } catch (error) {
+        console.error("Error fetching system config:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
