@@ -20,9 +20,9 @@ export const GetProject = async (req: Request, res: Response) => {
     }
               
     // 2. Validar Params
-    const { accountId, projectId } = req.params;
+    const { projectId } = req.params;
 
-    if (!projectId || !accountId) {
+    if (!projectId ) {
       return res.status(400).json({
         data: null,
         error: "Bad Request",
