@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 export function HubSidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const { accountId, projectId } = useParams();
+  const {  projectId } = useParams();
   const location = useLocation();
 
   // Si no hay projectId, probablemente estamos en la lista de proyectos y el sidebar puede cambiar o ocultarse.
