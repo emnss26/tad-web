@@ -24,19 +24,19 @@ export function HubSidebar() {
 
   const menuItems = [
     { icon: <Home className="h-5 w-5" />, label: "Home Projects", path: "/accprojects" },
-    { icon: <LayoutGrid className="h-5 w-5" />, label: "Project Dashboard", path: `/accprojects/${accountId}/${projectId}` },
-    { icon: <Users className="h-5 w-5" />, label: "Users", path: `/accprojects/${accountId}/${projectId}/accusers` },
-    { icon: <ClipboardList className="h-5 w-5" />, label: "Issues", path: `/accprojects/${accountId}/${projectId}/accissues` },
-    { icon: <Mail className="h-5 w-5" />, label: "RFIs", path: `/accprojects/${accountId}/${projectId}/accrfis` },
-    { icon: <FileText className="h-5 w-5" />, label: "Submittals", path: `/accprojects/${accountId}/${projectId}/accsubmittals` },
+    { icon: <LayoutGrid className="h-5 w-5" />, label: "Project Dashboard", path: `/accprojects/${projectId}` },
+    { icon: <Users className="h-5 w-5" />, label: "Users", path: `/accprojects/${projectId}/users` },
+    { icon: <ClipboardList className="h-5 w-5" />, label: "Issues", path: `/accprojects/${projectId}/issues` },
+    { icon: <Mail className="h-5 w-5" />, label: "RFIs", path: `/accprojects/${projectId}/rfis` },
+    { icon: <FileText className="h-5 w-5" />, label: "Submittals", path: `/accprojects/${projectId}/submittals` },
     // Agregué separadores lógicos en el renderizado en lugar de grupos estrictos para simplificar
-    { icon: <Layers className="h-5 w-5" />, label: "4D Data", path: `/accprojects/${accountId}/${projectId}/acc4ddata` },
-    { icon: <DollarSign className="h-5 w-5" />, label: "5D Data", path: `/accprojects/${accountId}/${projectId}/acc5ddata` },
-    { icon: <Wrench className="h-5 w-5" />, label: "6D Data", path: `/accprojects/${accountId}/${projectId}/acc6ddata` },
-    { icon: <FileCode className="h-5 w-5" />, label: "Plans", path: `/accprojects/${accountId}/${projectId}/plans` },
-    { icon: <ClipboardCheck className="h-5 w-5" />, label: "Tasks", path: `/accprojects/${accountId}/${projectId}/task-manager` },
-    { icon: <Clock className="h-5 w-5" />, label: "Time & Budget", path: `/accprojects/${accountId}/${projectId}/time-budget-management` },
-    { icon: <HardDrive className="h-5 w-5" />, label: "LOD Checker", path: `/accprojects/${accountId}/${projectId}/lod-checker` },
+    { icon: <Layers className="h-5 w-5" />, label: "4D Data", path: `/accprojects/${projectId}/acc4ddata` },
+    { icon: <DollarSign className="h-5 w-5" />, label: "5D Data", path: `/accprojects/${projectId}/acc5ddata` },
+    { icon: <Wrench className="h-5 w-5" />, label: "6D Data", path: `/accprojects/${projectId}/acc6ddata` },
+    { icon: <FileCode className="h-5 w-5" />, label: "Plans", path: `/accprojects/${projectId}/plans` },
+    { icon: <ClipboardCheck className="h-5 w-5" />, label: "Tasks", path: `/accprojects/${projectId}/task-manager` },
+    { icon: <Clock className="h-5 w-5" />, label: "Time & Budget", path: `/accprojects/${projectId}/time-budget-management` },
+    { icon: <HardDrive className="h-5 w-5" />, label: "LOD Checker", path: `/accprojects/${projectId}/lod-checker` },
   ];
 
   return (

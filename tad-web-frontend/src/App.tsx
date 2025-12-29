@@ -19,6 +19,10 @@ import SelectPlatformPage from '@/pages/tad-hub/SelectPlatformPage';
 // ACC 
 import ACCProjectsPage from '@/pages/tad-hub/acc/ProjectsPage';
 import ACCProjectPage from '@/pages/tad-hub/acc/ProjectPage';
+import ACCProjectUsersPage from '@/pages/tad-hub/acc/ProjectUsersPage';
+import ACCProjectIssuesPage from '@/pages/tad-hub/acc/ProjectIssuesPage';
+import ACCProjectRfisPage from '@/pages/tad-hub/acc/ProjectRfisPage';
+import ACCProjectSubmittalsPage from '@/pages/tad-hub/acc/ProjectSubmittalsPage';
 
 function App() {
   return (
@@ -47,17 +51,12 @@ function App() {
         <Route path="/accprojects" element={<ACCProjectsPage />} />
         <Route path="/bim360projects" element={<div>BIM360 Projects Placeholder</div>} />
 
-        <Route path="/accprojects/:accountId/:projectId" element={<ACCProjectPage />} />
+        <Route path="/accprojects/:projectId" element={<ACCProjectPage />} />
+        <Route path="/accprojects/:projectId/users" element={<ACCProjectUsersPage />} />
+        <Route path="/accprojects/:projectId/issues" element={<ACCProjectIssuesPage />} />
+        <Route path="/accprojects/:projectId/rfis" element={<ACCProjectRfisPage />} />
+        <Route path="/accprojects/:projectId/submittals" element={<ACCProjectSubmittalsPage />} />
         
-
-        {/* -- Nivel 2: Con Sidebar (projectId existe en la URL) -- */}
-        
-        {/* Dashboard y Módulos Internos */}
-        
-        <Route path="/accprojects/:accountId/:projectId" element={<div className="text-2xl font-bold">Project Dashboard</div>} />
-        <Route path="/accprojects/:accountId/:projectId/accusers" element={<div>Users Report Module</div>} />
-        <Route path="/accprojects/:accountId/:projectId/accissues" element={<div>Issues Report Module</div>} />
-        {/* ... más rutas internas ... */}
       
       </Route>
 

@@ -9,8 +9,6 @@ export const GetProjectUsers = async (req: Request, res: Response) => {
     const token = getToken(req);
     if (!token) return res.status(401).json({ error: "Unauthorized" });
 
-    console.log ("Token", token )
-
     let { projectId } = req.params;
     
     // Limpieza de ID
@@ -22,8 +20,6 @@ export const GetProjectUsers = async (req: Request, res: Response) => {
 
     // Fetch API
     const usersData = await AccAdminLib.getProjectUsers(token, projectId);
-
-    console.log("Users data", usersData)
 
     // Mapeo DB
     const enrichedUsers = usersData.map((user: any) => {

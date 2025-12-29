@@ -157,7 +157,7 @@ export default function ACCProjectsPage() {
                     {isValid ? (
                         <Button asChild className="w-full" variant="secondary">
                             {/* AQUÍ SE CONSTRUYE LA URL FINAL */}
-                            <Link to={`/accprojects/${cleanAccountId}/${cleanProjectId}`}>
+                            <Link to={`/accprojects/${cleanProjectId}`}>
                                 Open Dashboard
                             </Link>
                         </Button>

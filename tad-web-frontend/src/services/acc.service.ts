@@ -39,7 +39,7 @@ export const AccService = {
 
   // 7. (Placeholder) Modelo Federado
   // Esto lo implementaremos cuando hagamos la parte de Data Management
-  getFederatedModel: async (accountId: string, projectId: string) => {
+  getFederatedModel: async ( projectId: string) => {
     console.warn("Federated Model service not yet implemented in backend V2");
     return null; 
   }
