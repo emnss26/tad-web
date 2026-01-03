@@ -43,6 +43,22 @@ export const Bim360IssuesLib = {
     }
   },
 
+  /**
+   * Retrieves issue types for a project (Container).
+   * Endpoint: GET /containers/{containerId}/issue-types
+   */
+  getIssueTypes: async (token: string, containerId: string) => {
+    try {
+      const response = await axios.get(`${ISSUES_V2_URL}/containers/${containerId}/issue-types`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching Issue Types:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
   // ==========================================
   // SECTION: ISSUES (V2)
   // ==========================================
