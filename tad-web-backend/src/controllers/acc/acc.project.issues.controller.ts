@@ -12,7 +12,13 @@ import {
 export const GetIssues = async (req: Request, res: Response) => {
   try {
     const token = getToken(req);
-    if (!token) return res.status(401).json({ error: "Unauthorized" });
+    if (!token) {
+      return res.status(401).json({ 
+        data: null,
+        error: "Unauthorized", 
+        message: "Authorization token is required." 
+      });
+    }
 
     let { projectId } = req.params;
     if (projectId.startsWith("b.")) projectId = projectId.substring(2);

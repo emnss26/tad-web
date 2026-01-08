@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { GetAccProjects } from '../controllers/acc/projects.controller';
-import { GetProject } from '../controllers/acc/project.controller';
-import { GetProjectUsers } from '../controllers/acc/project.users.controller';
-import { GetIssues } from '../controllers/acc/project.issues.controller';
-import { GetRfis } from '../controllers/acc/project.rfis.controller';
-import { GetSubmittals } from '../controllers/acc/project.submittals.controller';
+import { GetAccProjects } from '../controllers/acc/acc.projects.controller';
+import { GetProject } from '../controllers/acc/acc.project.controller';
+import { GetProjectUsers } from '../controllers/acc/acc.project.users.controller';
+import { GetIssues } from '../controllers/acc/acc.project.issues.controller';
+import { GetRfis } from '../controllers/acc/acc.project.rfis.controller';
+import { GetSubmittals } from '../controllers/acc/acc.project.submittals.controller';
 
 const router = Router();
 

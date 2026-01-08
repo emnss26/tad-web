@@ -59,6 +59,29 @@ export const Bim360IssuesLib = {
       filters
     );
   },
+  
+  /**
+   * Retrieves the project's issue categories and types.
+   * Endpoint: GET /projects/{projectId}/issue-types
+   * @param includeSubtypes If true (default), returns subtypes (Types in UI).
+   */
+  getIssueTypes: async (token: string, projectId: string, includeSubtypes: boolean = true) => {
+    try {
+      const params: any = {};
+      if (includeSubtypes) {
+        params.include = 'subtypes';
+      }
+
+      const response = await axios.get(`${ISSUES_V2_URL}/containers/${projectId}/issue-types`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: params
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching Issue Types:', error.response?.data || error.message);
+      throw error;
+    }
+  },
 
   /**
    * Retrieves detailed information about a single issue.

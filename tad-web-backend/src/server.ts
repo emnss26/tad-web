@@ -14,6 +14,7 @@ import { config } from './config';
 // Routers
 import accRouter from './routes/acc.router';
 import authRouter from './routes/auth.router';
+import bim360Router from './routes/bim360.router';
 
 // ----------------------------------------------------------------------
 // 1. Definición de Tipos (TypeScript)
@@ -113,6 +114,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRouter);
 app.use('/api/acc', accRouter);
+app.use('/api/bim360', bim360Router);
 
 // ----------------------------------------------------------------------
 // 6. Lógica de WebSockets (Socket.IO)
