@@ -33,7 +33,7 @@ export default function ContactPage() {
                 <h3 className="font-bold text-lg">Email Us</h3>
                 <p className="text-muted-foreground mb-2">For general inquiries and support</p>
                 <a href="mailto:contact@tadhub.com" className="text-primary font-medium hover:underline">
-                  contact@tadhub.com
+                  taller.arq.dgtl@gmail.com
                 </a>
               </div>
             </Card>
@@ -49,18 +49,6 @@ export default function ContactPage() {
               </div>
             </Card>
 
-            <Card className="p-6 flex items-start space-x-4 hover:shadow-md transition-shadow">
-              <div className="bg-primary/10 p-3 rounded-lg text-primary">
-                <Phone className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Call Us</h3>
-                <p className="text-muted-foreground mb-2">Mon-Fri from 9am to 6pm</p>
-                <a href="tel:+525512345678" className="text-primary font-medium hover:underline">
-                  +52 (55) 1234-5678
-                </a>
-              </div>
-            </Card>
           </div>
 
           {/* Form Side */}

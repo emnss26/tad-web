@@ -8,13 +8,8 @@ export default function AboutPage() {
     <div className="relative overflow-hidden w-full animate-in fade-in duration-500">
       {/* Hero Section */}
       <section className="relative px-6 lg:px-8 py-24 md:py-32 max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="flex items-center justify-center">
-            <div className="relative">
-              <h1 className="text-8xl md:text-9xl font-bold text-primary tracking-widest opacity-20 select-none">T A D</h1>
-              <div className="absolute -bottom-4 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
-            </div>
-          </div>
+        <div className="grid lg:grid-cols-1 gap-12 items-center">
+          
 
           <div className="text-left">
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6">
@@ -22,8 +17,8 @@ export default function AboutPage() {
             </h2>
 
             <p className="text-lg md:text-xl text-muted-foreground mb-6 leading-relaxed">
-              TAD HUB is a digital platform for architects and engineers, where you can find the best courses and tools
-              to improve your skills and boost your career and projects.
+              TAD HUB is a digital platform for architects and engineers, where you can find the best platform web complement 
+              for autodesk construction cloud and  AI tools to improve your skills and boost your career and projects.
             </p>
 
             <p className="text-lg text-muted-foreground mb-8 leading-relaxed">

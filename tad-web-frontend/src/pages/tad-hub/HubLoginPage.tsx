@@ -51,7 +51,7 @@ export default function HubLoginPage() {
             <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 text-primary rounded-3xl mb-6 shadow-sm">
               <Building2 className="h-10 w-10" />
             </div>
-            <h1 className="text-4xl font-bold mb-4">TAD HUB | APS Viewer</h1>
+            <h1 className="text-4xl font-bold mb-4">TAD HUB | Autodesk Construction Cloud APPs & TAD APPs</h1>
             <p className="text-xl text-muted-foreground max-w-lg mx-auto leading-relaxed">
               Connect your Autodesk account to visualize models, manage issues, and automate workflows directly in your browser.
             </p>

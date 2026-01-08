@@ -19,7 +19,7 @@ interface Solution {
 const solutions: Solution[] = [
   {
     id: "viewer",
-    title: "APS Viewer",
+    title: "BIM APPs Dashboards, team management and Model Data",
     description:
       "Visualize, inspect, and analyze your BIM models directly in the browser with advanced metadata tools.",
     icon: <Cuboid className="h-6 w-6" />,
@@ -44,6 +44,16 @@ const solutions: Solution[] = [
     description: "Browse and download custom plugins, scripts, and families for your architectural projects.",
     icon: <ShoppingBag className="h-6 w-6" />,
     path: "/store",
+    status: "coming-soon",
+    colorClass: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+    features: ["Custom plugins", "Revit families", "Community scripts"],
+  },
+  {
+    id: "project-management",
+    title: "Project Management (Planning , control and automation tools)",
+    description: "Browse and download custom plugins, scripts, and families for your architectural projects.",
+    icon: <ShoppingBag className="h-6 w-6" />,
+    path: "/projectmanagement",
     status: "coming-soon",
     colorClass: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
     features: ["Custom plugins", "Revit families", "Community scripts"],
@@ -106,6 +116,7 @@ export default function SolutionsPage() {
               title="Real-time Sync"
               description="Changes reflect instantly across all platforms."
             />
+            
           </div>
         </div>
       </section>
@@ -127,9 +138,7 @@ export default function SolutionsPage() {
                   Schedule a Demo <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="bg-background" asChild>
-                <Link to="/contact">Contact Sales</Link>
-              </Button>
+              
             </div>
           </div>
         </Card>

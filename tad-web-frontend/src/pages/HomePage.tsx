@@ -110,9 +110,6 @@ export default function HomePage() {
                 Join thousands of construction professionals who trust TAD HUB for their digital construction needs.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                <Button size="lg" className="shadow-lg" asChild>
-                  <Link to="/login">Start Free Trial <ArrowRight className="ml-2 h-5 w-5" /></Link>
-                </Button>
                 <Button size="lg" variant="outline" className="bg-background" asChild>
                   <Link to="/contact">Request a Demo</Link>
                 </Button>

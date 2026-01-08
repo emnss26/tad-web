@@ -26,8 +26,8 @@ export function Header() {
             to="/"
             className="flex items-center gap-2 font-bold text-xl text-primary tracking-tight hover:opacity-90 transition-opacity"
           >
-            <Box className="w-8 h-8" />
-            <span>TAD HUB</span>
+            
+            <span>BIM Technical Automation Dashboard HUB</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -43,9 +43,6 @@ export function Header() {
                 {link.name}
               </Link>
             ))}
-            <Button asChild>
-              <Link to="/login">Sign In</Link>
-            </Button>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -79,11 +76,7 @@ export function Header() {
               </Link>
             ))}
             <div className="pt-4">
-              <Button asChild className="w-full">
-                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                  Sign In
-                </Link>
-              </Button>
+              
             </div>
           </div>
         </div>

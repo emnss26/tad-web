@@ -13,7 +13,7 @@ export function Footer() {
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center gap-2">
               <Box className="w-8 h-8 text-primary" />
-              <h3 className="text-xl font-bold text-white">TAD HUB</h3>
+              <h3 className="text-xl font-bold text-white">BIM Technical Automation Dashboard HUB</h3>
             </div>
             <p className="text-slate-400 max-w-sm text-sm leading-relaxed">
               Empowering BIM & VDC workflows with cutting-edge technology, automation, and real-time cloud integration.
@@ -47,7 +47,7 @@ export function Footer() {
         </div>
 
         <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
-          <p>&copy; {currentYear} TAD HUB. All rights reserved.</p>
+          <p>&copy; {currentYear} BIM Technical Automation Dashboard HUB. All rights reserved.</p>
         </div>
       </div>
     </footer>
