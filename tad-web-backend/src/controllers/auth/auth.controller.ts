@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { RequestHandler } from 'express';
 import { config } from '../../config';
 import { getAPSThreeLeggedToken } from '../../libs/auth/auth.three.legged';
@@ -116,3 +117,56 @@ export const getSystemConfig: RequestHandler = (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
+
+export const getUserProfile: RequestHandler = async (req, res) => {
+    try {
+      // 1. Obtener Token usando tu utilidad estándar
+      const token = req.session.token;
+    
+    if (!token) {
+        res.status(401).json({
+            data: { authenticated: false },
+            error: null,
+            message: 'Unauthorized: No session found'
+        });
+        return;
+    }
+
+      const APS_BASE = "https://developer.api.autodesk.com"; // O config.aps.baseUrl
+      
+      const { data } = await axios.get(`${APS_BASE}/userprofile/v1/users/@me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // 3. Normalizar datos
+      const name = data.displayName || data.userName || `${data.firstName || ""} ${data.lastName || ""}`.trim();
+      const pictureUrl = data.profileImages?.sizeX40 || data.profileImages?.sizeX20 || null;
+
+      const payload = {
+        id: data.userId || data.uid,
+        email: data.emailId || data.email,
+        name: name,
+        picture: pictureUrl,
+        raw: data // Opcional, por si necesitas más datos crudos
+      };
+
+      // 4. Evitar caché de datos sensibles
+      res.set("Cache-Control", "no-store");
+
+      return res.status(200).json({
+        data: payload,
+        error: null,
+        message: "User profile retrieved successfully"
+      });
+
+    } catch (error: any) {
+      console.error("[AuthController.getUserProfile] Error:", error.message);
+      
+      const status = error.response?.status || 500;
+      return res.status(status).json({
+        data: null,
+        error: error.code || "ProfileFetchFailed",
+        message: "Error retrieving user profile"
+      });
+    }
+  }

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getThreeLeggedAuth, getTwoLeggedAuth, postLogoutAuth, getUserStatusAuth,getSystemConfig } from '../controllers/auth/auth.controller';
+import { getThreeLeggedAuth, getTwoLeggedAuth, postLogoutAuth, getUserStatusAuth,getSystemConfig, getUserProfile } from '../controllers/auth/auth.controller';
 
 
 /**
@@ -18,6 +18,7 @@ router.get('/three-legged', getThreeLeggedAuth);
 router.get('/two-legged', getTwoLeggedAuth);
 router.get('/logout', postLogoutAuth);
 router.post('/user-status', getUserStatusAuth);
+router.get('/me', getUserProfile);
 router.get('/config', getSystemConfig);
 
 export default router;
