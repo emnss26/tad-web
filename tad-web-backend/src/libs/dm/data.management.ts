@@ -84,6 +84,8 @@ export const DataManagementLib = {
    */
   getTopFolders: async (token: string, hubId: string, projectId: string) => {
     try {
+
+      console.log ("Project Id:", projectId);
       const response = await axios.get(`${PROJECT_API_URL}/hubs/${hubId}/projects/${projectId}/topFolders`, {
         headers: { Authorization: `Bearer ${token}` }
       });
