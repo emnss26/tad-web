@@ -36,14 +36,15 @@ export function HubSidebar() {
   // Items exclusivos de ACC
   const accItems = [
     { icon: <FileText className="h-5 w-5" />, label: "Submittals", path: `${platformPrefix}/${accountId}/${projectId}/submittals` },
-    // Aquí irían los otros módulos exclusivos cuando estén listos (4D, 5D, etc)
     { icon: <Layers className="h-5 w-5" />, label: "4D Data", path: `${platformPrefix}/${accountId}/${projectId}/acc4ddata` },
     { icon: <DollarSign className="h-5 w-5" />, label: "5D Data", path: `${platformPrefix}/${accountId}/${projectId}/acc5ddata` },
   ];
 
   // Items exclusivos de BIM360 (Si hubiera, por ahora solo el base)
   const bim360Items: any[] = [
-      // Ejemplo: { icon: <Building />, label: "Classic Plans", path: ... }
+    { icon: <Layers className="h-5 w-5" />, label: "4D Data", path: `${platformPrefix}/${accountId}/${projectId}/acc4ddata` },
+    { icon: <DollarSign className="h-5 w-5" />, label: "5D Data", path: `${platformPrefix}/${accountId}/${projectId}/acc5ddata` },
+  
   ];
 
   // 3. Fusionar Menú según plataforma
@@ -52,9 +53,7 @@ export function HubSidebar() {
       { icon: <Home className="h-5 w-5" />, label: "All Projects", path: platformPrefix }, 
       
       ...(isAcc ? [...commonItems, ...accItems] : [...commonItems, ...bim360Items]),
-      
-      // Herramientas Comunes (Planos, Tareas, LOD) - Asumo que quieres que estén en ambos por ahora
-      // Si alguno no aplica a BIM360, muévelo al array accItems
+  
       { icon: <FileCode className="h-5 w-5" />, label: "Plans", path: `${platformPrefix}/${accountId}/${projectId}/plans` },
       { icon: <ClipboardCheck className="h-5 w-5" />, label: "Tasks", path: `${platformPrefix}/${accountId}/${projectId}/task-manager` },
       { icon: <HardDrive className="h-5 w-5" />, label: "LOD Checker", path: `${platformPrefix}/${accountId}/${projectId}/lod-checker` },
