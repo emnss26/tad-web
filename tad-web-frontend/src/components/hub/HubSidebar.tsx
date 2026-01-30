@@ -38,12 +38,14 @@ export function HubSidebar() {
     { icon: <FileText className="h-5 w-5" />, label: "Submittals", path: `${platformPrefix}/${accountId}/${projectId}/submittals` },
     { icon: <Layers className="h-5 w-5" />, label: "4D Data", path: `${platformPrefix}/${accountId}/${projectId}/acc4ddata` },
     { icon: <DollarSign className="h-5 w-5" />, label: "5D Data", path: `${platformPrefix}/${accountId}/${projectId}/acc5ddata` },
+    { icon: <Layers className="h-5 w-5" />, label: "6D Data", path: `${platformPrefix}/${accountId}/${projectId}/acc6ddata` },
   ];
 
   // Items exclusivos de BIM360 (Si hubiera, por ahora solo el base)
   const bim360Items: any[] = [
-    { icon: <Layers className="h-5 w-5" />, label: "4D Data", path: `${platformPrefix}/${accountId}/${projectId}/acc4ddata` },
-    { icon: <DollarSign className="h-5 w-5" />, label: "5D Data", path: `${platformPrefix}/${accountId}/${projectId}/acc5ddata` },
+    { icon: <Layers className="h-5 w-5" />, label: "4D Data", path: `${platformPrefix}/${accountId}/${projectId}/b3604ddata` },
+    { icon: <DollarSign className="h-5 w-5" />, label: "5D Data", path: `${platformPrefix}/${accountId}/${projectId}/b3605ddata` },
+    { icon: <Layers className="h-5 w-5" />, label: "6D Data", path: `${platformPrefix}/${accountId}/${projectId}/b3606ddata` },
   
   ];
 

@@ -23,6 +23,7 @@ import ACCProjectUsersPage from '@/pages/tad-hub/acc/AccProjectUsersPage';
 import ACCProjectIssuesPage from '@/pages/tad-hub/acc/AccProjectIssuesPage';
 import ACCProjectRfisPage from '@/pages/tad-hub/acc/AccProjectRfisPage';
 import ACCProjectSubmittalsPage from '@/pages/tad-hub/acc/AccProjectSubmittalsPage';
+import ACC4DDatabasePage from '@/pages/tad-hub/acc/Acc4DDatabasePage';
 
 // BIM360
 import Bim360ProjectsPage from '@/pages/tad-hub/bim360/Bim360ProjectsPage';
@@ -74,6 +75,7 @@ function App() {
         <Route path="/accprojects/:accountId/:projectId/issues" element={<ACCProjectIssuesPage />} />
         <Route path="/accprojects/:accountId/:projectId/rfis" element={<ACCProjectRfisPage />} />
         <Route path="/accprojects/:accountId/:projectId/submittals" element={<ACCProjectSubmittalsPage />} />
+        <Route path="/accprojects/:accountId/:projectId/acc4ddata" element={<ACC4DDatabasePage />} />
         
       
       </Route>

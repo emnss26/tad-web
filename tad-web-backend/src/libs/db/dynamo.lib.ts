@@ -1,72 +1,178 @@
-import { PutCommand, GetCommand, BatchWriteCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  PutCommand,
+  GetCommand,
+  BatchWriteCommand,
+  QueryCommand,
+  UpdateCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { dynamoDbClient } from "./dynamo.client";
 
+type BatchWriteResult = {
+  unprocessed: number;
+  processed: number;
+};
+
 export const DynamoLib = {
-  
-  /**
-   * Guardar o Actualizar un solo item
-   */
   saveItem: async (tableName: string, item: any) => {
-    try {
-      await dynamoDbClient.send(new PutCommand({
-        TableName: tableName,
-        Item: item
-      }));
-      return true;
-    } catch (error) {
-      console.error(`[DynamoLib] Error saving item to ${tableName}:`, error);
-      throw error;
-    }
+    await dynamoDbClient.send(
+      new PutCommand({ TableName: tableName, Item: item })
+    );
+    return true;
   },
 
-  /**
-   * Obtener un item por su llave primaria (PK y opcional SK)
-   */
   getItem: async (tableName: string, key: Record<string, any>) => {
-    try {
-      const result = await dynamoDbClient.send(new GetCommand({
+    const result = await dynamoDbClient.send(
+      new GetCommand({ TableName: tableName, Key: key })
+    );
+    return result.Item;
+  },
+
+  // ✅ Query por PK (paginado)
+  queryByPK: async ({
+    tableName,
+    pkName,
+    pkValue,
+  }: {
+    tableName: string;
+    pkName: string;
+    pkValue: string;
+  }) => {
+    const out: any[] = [];
+    let ExclusiveStartKey: any = undefined;
+
+    do {
+      const res = await dynamoDbClient.send(
+        new QueryCommand({
+          TableName: tableName,
+          KeyConditionExpression: "#pk = :pk",
+          ExpressionAttributeNames: { "#pk": pkName },
+          ExpressionAttributeValues: { ":pk": pkValue },
+          ExclusiveStartKey,
+        })
+      );
+
+      out.push(...(res.Items || []));
+      ExclusiveStartKey = res.LastEvaluatedKey;
+    } while (ExclusiveStartKey);
+
+    return out;
+  },
+
+  // ✅ Query por GSI con begins_with (paginado)
+  queryByGSI: async ({
+    tableName,
+    indexName,
+    pkName,
+    pkValue,
+    skName,
+    skBeginsWith,
+  }: {
+    tableName: string;
+    indexName: string;
+    pkName: string;
+    pkValue: string;
+    skName: string;
+    skBeginsWith: string;
+  }) => {
+    const out: any[] = [];
+    let ExclusiveStartKey: any = undefined;
+
+    do {
+      const res = await dynamoDbClient.send(
+        new QueryCommand({
+          TableName: tableName,
+          IndexName: indexName,
+          KeyConditionExpression: "#pk = :pk AND begins_with(#sk, :sk)",
+          ExpressionAttributeNames: { "#pk": pkName, "#sk": skName },
+          ExpressionAttributeValues: { ":pk": pkValue, ":sk": skBeginsWith },
+          ExclusiveStartKey,
+        })
+      );
+
+      out.push(...(res.Items || []));
+      ExclusiveStartKey = res.LastEvaluatedKey;
+    } while (ExclusiveStartKey);
+
+    return out;
+  },
+
+  // ✅ Update de un campo (seguro y simple)
+  updateField: async (
+    tableName: string,
+    key: Record<string, any>,
+    field: string,
+    value: any
+  ) => {
+    await dynamoDbClient.send(
+      new UpdateCommand({
         TableName: tableName,
-        Key: key
-      }));
-      return result.Item;
-    } catch (error) {
-      console.error(`[DynamoLib] Error getting item from ${tableName}:`, error);
-      throw error;
-    }
+        Key: key,
+        UpdateExpression: "SET #f = :v, #u = :u",
+        ExpressionAttributeNames: { "#f": field, "#u": "updatedAt" },
+        ExpressionAttributeValues: { ":v": value, ":u": new Date().toISOString() },
+      })
+    );
+    return true;
   },
 
   /**
-   * Escritura Masiva (Batch Write) - Maneja chunks de 25 items (Límite de AWS)
-   * Ideal para guardar listas de Usuarios, Issues o Proyectos.
+   * ✅ batchWrite (API LEGACY)
+   * Tus controllers viejos llaman DynamoLib.batchWrite(...)
+   * Lo mantenemos y por debajo usamos el retry nuevo.
    */
-  batchWrite: async (tableName: string, items: any[]) => {
-    if (items.length === 0) return;
+  batchWrite: async (tableName: string, items: any[]): Promise<BatchWriteResult> => {
+    return DynamoLib.batchWriteWithRetry(tableName, items);
+  },
 
-    // DynamoDB permite máximo 25 operaciones por batch
-    const chunkSize = 25;
-    const chunks = [];
+  /**
+   * ✅ BatchWrite con retry por UnprocessedItems (API NUEVA)
+   * Útil para modeldata (y en general para todo).
+   */
+  batchWriteWithRetry: async (
+    tableName: string,
+    items: any[],
+    opts?: { maxRetries?: number; backoffMs?: number; chunkSize?: number }
+  ): Promise<BatchWriteResult> => {
+    const chunkSize = opts?.chunkSize ?? 25;
+    const maxRetries = opts?.maxRetries ?? 3;
+    const backoffMs = opts?.backoffMs ?? 200;
 
+    if (!Array.isArray(items) || items.length === 0) {
+      return { unprocessed: 0, processed: 0 };
+    }
+
+    const chunks: any[][] = [];
     for (let i = 0; i < items.length; i += chunkSize) {
       chunks.push(items.slice(i, i + chunkSize));
     }
 
-    console.log(`[DynamoLib] Saving ${items.length} items to ${tableName} in ${chunks.length} batches...`);
+    let totalUnprocessed = 0;
+    let processed = 0;
 
     for (const chunk of chunks) {
-      const putRequests = chunk.map(item => ({
-        PutRequest: { Item: item }
-      }));
+      let requestItems: any = {
+        [tableName]: chunk.map((Item) => ({ PutRequest: { Item } })),
+      };
 
-      try {
-        await dynamoDbClient.send(new BatchWriteCommand({
-          RequestItems: {
-            [tableName]: putRequests
-          }
-        }));
-      } catch (error) {
-        console.error(`[DynamoLib] Error in batch write to ${tableName}:`, error);
-        // Podrías lanzar error o continuar con el siguiente chunk
+      // processed "optimista" (si hay unprocessed, no cuenta como procesado final)
+      processed += chunk.length;
+
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        const res = await dynamoDbClient.send(
+          new BatchWriteCommand({ RequestItems: requestItems })
+        );
+
+        const unprocessed = res.UnprocessedItems?.[tableName] || [];
+        if (!unprocessed.length) break;
+
+        totalUnprocessed += unprocessed.length;
+        requestItems = { [tableName]: unprocessed };
+
+        // backoff simple
+        await new Promise((r) => setTimeout(r, backoffMs * (attempt + 1)));
       }
     }
-  }
+
+    return { unprocessed: totalUnprocessed, processed };
+  },
 };

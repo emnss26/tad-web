@@ -26,6 +26,9 @@ export const GetProjectModelFiles = async (req: Request, res: Response) => {
             });
         }
 
+        console.log("Project Id:", projectId);
+        console.log("Hub Id:", hubId);
+
         // --- CORRECCIÓN CLAVE ---
         // La API de Data Management requiere que el Project ID inicie con "b."
         const formattedProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
@@ -38,6 +41,7 @@ export const GetProjectModelFiles = async (req: Request, res: Response) => {
         // 1. Obtener Top Folders usando el ID formateado
         const topFoldersData = await DataManagementLib.getTopFolders(token, hubId as string, formattedProjectId);
 
+        console.log("Top Folders Data:", topFoldersData);
         // 2. Buscar recursivamente (Pasamos el ID formateado también aquí)
         const allFilesNested = await Promise.all(
             topFoldersData.data.map(async (topFolder: any) => {
