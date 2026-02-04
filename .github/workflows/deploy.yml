@@ -73,7 +73,7 @@ jobs:
           # Arrancar contenedor en puerto 80 (público) -> 8080 (interno)
           sudo docker run -d \
             --name tad-app \
-            -p 80:8080 \
+            -p 8080:8080 \
             --restart unless-stopped \
             --env-file .env \
             ${{ secrets.DOCKER_USERNAME }}/tad-web:latest
