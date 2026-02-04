@@ -25,7 +25,7 @@ jobs:
         # --- CORRECCIÓN CRÍTICA: PASAR VARIABLES AL BUILD ---
         # Aquí inyectamos los valores directamente para que el Dockerfile los reciba
         build-args: |
-          VITE_CLIENT_ID=4h84XhUJ2565awrZxt49V7hXdJ5mssBSu5QJ30covaN3NyIi
+          VITE_CLIENT_ID=4h84XhUJ2565awrZxt49V7hXdJ5mssBSu5QJ30covaN3NyIs
           VITE_API_BACKEND_BASE_URL=https://tad.com.mx
         # ----------------------------------------------------
 
