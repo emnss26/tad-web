@@ -10,6 +10,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    # --- CORRECCIÓN CRÍTICA ---
+    # Creamos el archivo .env ANTES de construir la imagen.
+    # Esto permite que Vite lea VITE_CLIENT_ID y VITE_API_BACKEND_BASE_URL
+    # durante el proceso de "npm run build".
+    - name: Create .env file for Build
+      run: |
+        echo "${{ secrets.ENV_FILE }}" > .env
+
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
@@ -59,7 +67,7 @@ jobs:
           fi
 
           # --- 2. PREPARAR ENTORNO ---
-          # Inyectar variables desde GitHub Secrets
+          # Inyectar variables desde GitHub Secrets (Necesario para el backend en Node)
           echo "${{ secrets.ENV_FILE }}" > .env
 
           # --- 3. DESPLIEGUE ---
@@ -70,7 +78,8 @@ jobs:
           # Descargar última versión
           sudo docker pull ${{ secrets.DOCKER_USERNAME }}/tad-web:latest
           
-          # Arrancar contenedor en puerto 80 (público) -> 8080 (interno)
+          # Arrancar contenedor en puerto 8080 (interno)
+          # Esto deja el puerto 80/443 libre para Nginx
           sudo docker run -d \
             --name tad-app \
             -p 8080:8080 \
