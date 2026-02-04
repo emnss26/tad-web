@@ -21,6 +21,8 @@ build/
 out/
 coverage/
 
+legacy_reference/
+
 # --- Archivos de Sistema Operativo ---
 .DS_Store
 Thumbs.db
