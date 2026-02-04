@@ -20,7 +20,7 @@ export const getThreeLeggedAuth: RequestHandler<any, any, any, ThreeLeggedQuery>
     try {
         const token = await getAPSThreeLeggedToken(code);
 
-        // Store token in Server-Side Session
+        //  Store token in Server-Side Session
         req.session.token = token;
 
         // Force save to avoid race conditions with the redirect
