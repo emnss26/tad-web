@@ -10,14 +10,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    # --- CORRECCIÓN CRÍTICA ---
-    # Creamos el archivo .env ANTES de construir la imagen.
-    # Esto permite que Vite lea VITE_CLIENT_ID y VITE_API_BACKEND_BASE_URL
-    # durante el proceso de "npm run build".
-    - name: Create .env file for Build
-      run: |
-        echo "${{ secrets.ENV_FILE }}" > .env
-
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
@@ -30,6 +22,12 @@ jobs:
         context: .
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/tad-web:latest
+        # --- CORRECCIÓN CRÍTICA: PASAR VARIABLES AL BUILD ---
+        # Aquí inyectamos los valores directamente para que el Dockerfile los reciba
+        build-args: |
+          VITE_CLIENT_ID=4h84XhUJ2565awrZxt49V7hXdJ5mssBSu5QJ30covaN3NyIi
+          VITE_API_BACKEND_BASE_URL=https://tad.com.mx
+        # ----------------------------------------------------
 
   deploy:
     needs: build-and-push
@@ -42,13 +40,12 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          # --- 1. INSTALACIÓN AUTOMÁTICA DE DOCKER (Si falta) ---
+          # --- 1. INSTALACIÓN AUTOMÁTICA DE DOCKER ---
           if ! command -v docker &> /dev/null; then
             echo "⚠️ Docker no encontrado. Iniciando instalación..."
             sudo apt-get update
             sudo apt-get install -y ca-certificates curl gnupg
             sudo install -m 0755 -d /etc/apt/keyrings
-            # Limpiar clave anterior si existe corrupta
             sudo rm -f /etc/apt/keyrings/docker.gpg
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
             sudo chmod a+r /etc/apt/keyrings/docker.gpg
@@ -61,17 +58,13 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
             sudo usermod -aG docker ubuntu
-            echo "✅ Docker instalado correctamente."
-          else
-            echo "✅ Docker ya estaba instalado."
           fi
 
-          # --- 2. PREPARAR ENTORNO ---
-          # Inyectar variables desde GitHub Secrets (Necesario para el backend en Node)
+          # --- 2. PREPARAR ENTORNO (RUNTIME) ---
+          # Esto sigue siendo necesario para el Backend (Node.js)
           echo "${{ secrets.ENV_FILE }}" > .env
 
           # --- 3. DESPLIEGUE ---
-          # Usamos 'sudo' para garantizar permisos en esta sesión
           sudo docker stop tad-app || true
           sudo docker rm tad-app || true
           
@@ -79,7 +72,6 @@ jobs:
           sudo docker pull ${{ secrets.DOCKER_USERNAME }}/tad-web:latest
           
           # Arrancar contenedor en puerto 8080 (interno)
-          # Esto deja el puerto 80/443 libre para Nginx
           sudo docker run -d \
             --name tad-app \
             -p 8080:8080 \
