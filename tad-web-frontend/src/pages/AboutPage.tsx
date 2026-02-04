@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card"
 export default function AboutPage() {
   return (
     <div className="relative overflow-hidden w-full animate-in fade-in duration-500">
-      {/*  Hero Section */}
+      {/* Hero Section */}
       <section className="relative px-6 lg:px-8 py-24 md:py-32 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-1 gap-12 items-center">
           
