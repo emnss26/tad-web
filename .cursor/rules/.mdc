@@ -1,0 +1,12 @@
+---
+description: TypeScript/React standards
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+alwaysApply: true
+---
+
+- Preferir funciones puras y tipos explícitos en bordes (API/DTO).
+- No usar `any` salvo justificación.
+- Mantener componentes pequeños; extraer hooks.
+- Tailwind: evitar clases duplicadas; preferir componentes reutilizables.
