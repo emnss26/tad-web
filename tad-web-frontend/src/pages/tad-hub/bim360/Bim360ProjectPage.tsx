@@ -131,7 +131,7 @@ const Bim360ProjectPage = () => {
   // ------------------------------------------
   useEffect(() => {
     if (selectedUrn && !viewerInitialized.current) {
-      console.log("Initializing Viewer for URN:", selectedUrn);
+      console.log("Viewr:", selectedUrn);
       setTimeout(() => {
         simpleViewer(selectedUrn);
         viewerInitialized.current = true; 

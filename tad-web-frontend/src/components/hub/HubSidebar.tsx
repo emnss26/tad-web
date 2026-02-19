@@ -59,6 +59,7 @@ export function HubSidebar() {
       { icon: <FileCode className="h-5 w-5" />, label: "Plans", path: `${platformPrefix}/${accountId}/${projectId}/plans` },
       { icon: <ClipboardCheck className="h-5 w-5" />, label: "Tasks", path: `${platformPrefix}/${accountId}/${projectId}/task-manager` },
       { icon: <HardDrive className="h-5 w-5" />, label: "LOD Checker", path: `${platformPrefix}/${accountId}/${projectId}/lod-checker` },
+      { icon: <Clock className="h-5 w-5" />, label: "VR", path: `${platformPrefix}/${accountId}/${projectId}/vr` },
   ];
 
   return (

@@ -38,7 +38,6 @@ import React, {
     isolateObjectsInViewer,
     showAllObjects,
     hideObjectsInViewer,
-    highlightObjectsInViewer,
     resetViewerView,
   } from "@/lib/viewer.actions";
   import { useTableControls } from "@/services/database.table";
@@ -78,7 +77,7 @@ import React, {
   // IMPORTANTE: este ID debe coincidir con el que usa tu util `data4Dviewer` internamente.
   const VIEWER_CONTAINER_ID = "TAD4DViwer";
   
-  const ACC4DDatabasePage = () => {
+  const Bim3604DDatabasePage = () => {
     const { projectId, accountId } = useParams<{
       projectId: string;
       accountId: string;
@@ -130,7 +129,7 @@ import React, {
     const [userMessage, setUserMessage] = useState("");
     const [chatbotResponse, setChatbotResponse] = useState("");
     const [conversationHistory, setConversationHistory] = useState(
-      JSON.parse(localStorage.getItem("conversationHistory") || "[]")
+      JSON.parse(localStorage.getItem("conversationHistoryBim3604D") || "[]")
     );
   
     // --- Table Controls Hook ---
@@ -638,46 +637,19 @@ import React, {
       }
     };
   
-    const handleSendMessage = async () => {
+    const handleSendMessage = () => {
       if (!userMessage.trim()) return;
-      setLoading(true);
-      try {
-        const body = {
-          message: userMessage,
-          accountId,
-          projectId,
-          contextData: null,
-        };
-  
-        // (no lo tocamos para no afectar IA; aunque ahorita no lo usarán)
-        const res = await fetch(`${BACKEND_URL}/ai-modeldata`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(body),
-        });
-  
-        const dataRes = await res.json();
-        setChatbotResponse(dataRes.data?.reply || "No response");
-  
-        if (dataRes.action && dataRes.dbIds && window.data4Dviewer) {
-          const actions: any = {
-            isolate: isolateObjectsInViewer,
-            hide: hideObjectsInViewer,
-            highlight: highlightObjectsInViewer,
-          };
-          if (actions[dataRes.action]) {
-            actions[dataRes.action](window.data4Dviewer, dataRes.dbIds);
-          }
-        }
-      } catch (error) {
-        console.error(error);
-        setChatbotResponse("Error processing request");
-      } finally {
-        setLoading(false);
-      }
+
+      const response = "AI assistant for BIM 360 4D is not implemented yet.";
+      setChatbotResponse(response);
+      setConversationHistory((prev: any[]) => [
+        ...prev,
+        { role: "user", content: userMessage, createdAt: new Date().toISOString() },
+        { role: "assistant", content: response, createdAt: new Date().toISOString() },
+      ]);
+      setUserMessage("");
     };
-  
+
     const handleApplyColorToDiscipline = () => {
       if (
         window.data4Dviewer &&
@@ -695,7 +667,7 @@ import React, {
   
     useEffect(() => {
       localStorage.setItem(
-        "conversationHistory",
+        "conversationHistoryBim3604D",
         JSON.stringify(conversationHistory)
       );
     }, [conversationHistory]);
@@ -730,7 +702,7 @@ import React, {
             {/* Header Area with Model Selection */}
             <div className="mb-6 flex justify-between items-center">
               <h1 className="text-2xl font-bold text-gray-900">
-                Model Database 4D{selectedModel?.name ? ` — ${selectedModel.name}` : ""}
+                BIM 360 Model Database 4D{selectedModel?.name ? ` - ${selectedModel.name}` : ""}
               </h1>
   
               {/* MODEL SELECTION DIALOG */}
@@ -753,7 +725,7 @@ import React, {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[500px]">
                   <DialogHeader>
-                    <DialogTitle>Select a Model</DialogTitle>
+                    <DialogTitle>Select a BIM 360 Model</DialogTitle>
                   </DialogHeader>
   
                   {loadingModels ? (
@@ -989,4 +961,5 @@ import React, {
     );
   };
   
-  export default React.memo(ACC4DDatabasePage);
+  export default React.memo(Bim3604DDatabasePage);
+

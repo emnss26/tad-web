@@ -23,7 +23,7 @@ import React, {
   // Helpers & Constants
   import {
     mapCategoryToElementType,
-    reorderRowsByDiscipline,
+    reorderRowsByDisciplineAndGroup,
   } from "@/lib/general.functions";
   import type { IRowData } from "@/lib/general.functions";
   
@@ -33,7 +33,7 @@ import React, {
     propertyMappings,
     numericFields,
   } from "@/lib/data.bases.constants";
-  import { defaultRow4D } from "@/lib/default.rows";
+  import { defaultRow5D } from "@/lib/default.rows";
   import {
     isolateObjectsInViewer,
     showAllObjects,
@@ -45,11 +45,10 @@ import React, {
   
   // Services & Viewer
   import { DmService } from "@/services/dm.service";
-  import { data4Dviewer } from "@/utils/viewers/4-d.viewer";
-  import type { I4DItem } from "@/utils/viewers/4-d.viewer";
+  import { data5Dviewer } from "@/utils/viewers/5d-6d.viewer";
   
   // Components
-  import Database4DTable from "@/components/database_components/database.4d.table";
+  import Database5DTable from "@/components/database_components/database.5d.table";
   import ControlPanel from "@/components/database_components/control.panel";
   
   const BACKEND_URL =
@@ -75,10 +74,10 @@ import React, {
     versionNumber?: number;
   }
   
-  // IMPORTANTE: este ID debe coincidir con el que usa tu util `data4Dviewer` internamente.
-  const VIEWER_CONTAINER_ID = "TAD4DViwer";
+  // IMPORTANTE: este ID debe coincidir con el que usa tu util `data5Dviewer` internamente.
+  const VIEWER_CONTAINER_ID = "TAD5DViwer";
   
-  const ACC4DDatabasePage = () => {
+  const Acc5DDatabasePage = () => {
     const { projectId, accountId } = useParams<{
       projectId: string;
       accountId: string;
@@ -99,8 +98,8 @@ import React, {
     const viewerInitialized = useRef(false);
   
     // --- Data & Table States ---
-    const defaultRow = useMemo(() => defaultRow4D, []);
-    const propertyMapping = useMemo(() => propertyMappings["4D"], []);
+    const defaultRow = useMemo(() => defaultRow5D, []);
+    const propertyMapping = useMemo(() => propertyMappings["5D"], []);
   
     const [data, setData] = useState<IRowData[]>([defaultRow]);
     const [collapsedDisciplines, setCollapsedDisciplines] = useState<
@@ -110,6 +109,9 @@ import React, {
     const [lastClickedRowNumber, setLastClickedRowNumber] = useState<number | null>(
       null
     );
+    const [groupExtraData, setGroupExtraData] = useState<
+      Record<string, Record<string, string>>
+    >({});
   
     // --- Viewer & UI States ---
     const [showViewer, setShowViewer] = useState(true);
@@ -130,14 +132,14 @@ import React, {
     const [userMessage, setUserMessage] = useState("");
     const [chatbotResponse, setChatbotResponse] = useState("");
     const [conversationHistory, setConversationHistory] = useState(
-      JSON.parse(localStorage.getItem("conversationHistory") || "[]")
+      JSON.parse(localStorage.getItem("conversationHistory5D") || "[]")
     );
   
     // --- Table Controls Hook ---
     const { handleAddRow, handleRemoveRow } = useTableControls<IRowData>(
       setData,
       defaultRow,
-      reorderRowsByDiscipline
+      reorderRowsByDisciplineAndGroup
     );
   
     // ✅ API base: respeta /api y agrega /models/:modelId
@@ -157,6 +159,7 @@ import React, {
       setSelectedRows([]);
       setSelectionCount(0);
       setCollapsedDisciplines({});
+      setGroupExtraData({});
     }, [projectId, accountId, defaultRow]);
   
     // ------------------------------------------
@@ -193,10 +196,10 @@ import React, {
   
       try {
         if (
-          window.data4Dviewer &&
-          typeof (window.data4Dviewer as any).tearDown === "function"
+          window.data5Dviewer &&
+          typeof (window.data5Dviewer as any).tearDown === "function"
         ) {
-          (window.data4Dviewer as any).tearDown();
+          (window.data5Dviewer as any).tearDown();
         }
       } catch {}
   
@@ -208,6 +211,7 @@ import React, {
       setSelectionCount(0);
       setCollapsedDisciplines({});
       setLastClickedRowNumber(null);
+      setGroupExtraData({});
   
       // Reset temporal para forzar efecto del viewer
       setSelectedModel(null);
@@ -241,13 +245,9 @@ import React, {
           const loadedRows = items.map((item: any) => ({
             ...defaultRow,
             ...item,
-            PlanedConstructionStartDate:
-              item.PlanedConstructionStartDate?.substring(0, 10) || "",
-            PlanedConstructionEndDate:
-              item.PlanedConstructionEndDate?.substring(0, 10) || "",
           }));
   
-          setData(reorderRowsByDiscipline(loadedRows));
+          setData(reorderRowsByDisciplineAndGroup(loadedRows));
         } catch (e) {
           console.error(e);
           setData([defaultRow]);
@@ -283,8 +283,8 @@ import React, {
   
     useEffect(() => {
       syncViewerSelectionRef.current = syncViewerSelection;
-      if (syncViewerSelection && window.data4Dviewer) {
-        const currentDbIds = window.data4Dviewer.getSelection() || [];
+      if (syncViewerSelection && window.data5Dviewer) {
+        const currentDbIds = window.data5Dviewer.getSelection() || [];
         handleViewerSelectionChanged(currentDbIds);
       }
     }, [syncViewerSelection, handleViewerSelectionChanged]);
@@ -299,9 +299,9 @@ import React, {
       };
   
       const t = setTimeout(() => {
-        console.log("Initializing 4D Viewer with URN:", selectedUrn);
+        console.log("Initializing 5D Viewer with URN:", selectedUrn);
   
-        data4Dviewer({
+        data5Dviewer({
           federatedModel: selectedUrn,
           setSelectionCount,
           setSelection: conditionalSelectionHandler,
@@ -321,51 +321,11 @@ import React, {
     const handleToggleViewer = () => setShowViewer((prev) => !prev);
   
     const handleToggleFullScreen = () => {
-      if (window.data4Dviewer && (window.data4Dviewer as any).setFullScreen) {
-        (window.data4Dviewer as any).setFullScreen(!isFullScreen);
+      if (window.data5Dviewer && (window.data5Dviewer as any).setFullScreen) {
+        (window.data5Dviewer as any).setFullScreen(!isFullScreen);
         setIsFullScreen(!isFullScreen);
       }
     };
-  
-    // ------------------------------------------
-    // 3. Data Sync (Table <-> Viewer 4D Data)
-    // ------------------------------------------
-    useEffect(() => {
-      const validData = data.filter(
-        (item) => item.dbId && !isNaN(parseInt(item.dbId, 10))
-      );
-  
-      const fourDData: I4DItem[] = validData.map((item) => ({
-        dbId: parseInt(item.dbId!, 10),
-        startDate: item.PlanedConstructionStartDate,
-        endDate: item.PlanedConstructionEndDate,
-      }));
-
-      let cancelled = false;
-      let attempts = 0;
-      const maxAttempts = 20;
-
-      const attemptSync = () => {
-        if (cancelled) return;
-
-        const viewer = window.data4Dviewer as any;
-        if (viewer && typeof viewer.set4DData === "function") {
-          viewer.set4DData(fourDData);
-          return;
-        }
-
-        if (attempts < maxAttempts) {
-          attempts += 1;
-          setTimeout(attemptSync, 150);
-        }
-      };
-
-      attemptSync();
-
-      return () => {
-        cancelled = true;
-      };
-    }, [data]);
   
     // ------------------------------------------
     // 4. Data Extraction Event Listener
@@ -412,6 +372,8 @@ import React, {
         }, {});
   
         const fieldsToCheck = [
+          "Code",
+          "TypeName",
           "Description",
           "Length",
           "Width",
@@ -422,6 +384,10 @@ import React, {
           "Volume",
           "Level",
           "Material",
+          "Unit",
+          "Quantity",
+          "UnitPrice",
+          "TotalCost",
         ];
         fieldsToCheck.forEach((field) => {
           if (!mappedProperties[field]) mappedProperties[field] = "";
@@ -445,7 +411,7 @@ import React, {
             return prevData;
           }
           const updatedData = [...prevData, newRow];
-          return reorderRowsByDiscipline(updatedData);
+          return reorderRowsByDisciplineAndGroup(updatedData);
         });
       };
   
@@ -475,6 +441,9 @@ import React, {
         Perimeter: 0,
         Area: 0,
         Volume: 0,
+        Quantity: 0,
+        UnitPrice: 0,
+        TotalCost: 0,
       };
       rows.forEach((row) => {
         Object.keys(totals).forEach((key) => {
@@ -501,8 +470,8 @@ import React, {
       event: React.ChangeEvent<HTMLInputElement>
     ) => {
       const { name, value } = event.target;
-      setData((prev) =>
-        prev.map((item) => {
+      setData((prev) => {
+        const updatedData = prev.map((item) => {
           if (
             selectedRows.includes(row.dbId!) &&
             selectedRows.includes(item.dbId!)
@@ -513,13 +482,18 @@ import React, {
             return { ...item, [name]: value } as any;
           }
           return item;
-        })
-      );
+        });
+
+        if (name === "Code") {
+          return reorderRowsByDisciplineAndGroup(updatedData);
+        }
+        return updatedData;
+      });
     };
   
     const handleDisciplineChange = (row: IRowData, newValue: string) => {
-      setData((prev) =>
-        prev.map((item) => {
+      setData((prev) => {
+        const updatedData = prev.map((item) => {
           if (
             selectedRows.includes(row.dbId!) &&
             selectedRows.includes(item.dbId!)
@@ -530,8 +504,9 @@ import React, {
             return { ...item, Discipline: newValue };
           }
           return item;
-        })
-      );
+        });
+        return reorderRowsByDisciplineAndGroup(updatedData);
+      });
     };
   
     const handleElementTypeChange = (row: IRowData, newValue: string) => {
@@ -561,7 +536,10 @@ import React, {
           .filter((r) => r.dbId && String(r.dbId).trim())
           .map((row) => {
             const cleaned: any = { ...row };
-            numericFields.forEach((field) => {
+            const submitNumericFields = Array.from(
+              new Set([...numericFields, "Quantity", "UnitPrice", "TotalCost"])
+            );
+            submitNumericFields.forEach((field) => {
               const val = cleaned[field];
               if (typeof val === "string" && val.trim() !== "") {
                 const num = parseFloat(val);
@@ -622,13 +600,9 @@ import React, {
         const loadedRows = items.map((item: any) => ({
           ...defaultRow,
           ...item,
-          PlanedConstructionStartDate:
-            item.PlanedConstructionStartDate?.substring(0, 10) || "",
-          PlanedConstructionEndDate:
-            item.PlanedConstructionEndDate?.substring(0, 10) || "",
         }));
   
-        setData(reorderRowsByDiscipline(loadedRows));
+        setData(reorderRowsByDisciplineAndGroup(loadedRows));
         alert("Data loaded successfully");
       } catch (error) {
         console.error(error);
@@ -660,14 +634,14 @@ import React, {
         const dataRes = await res.json();
         setChatbotResponse(dataRes.data?.reply || "No response");
   
-        if (dataRes.action && dataRes.dbIds && window.data4Dviewer) {
+        if (dataRes.action && dataRes.dbIds && window.data5Dviewer) {
           const actions: any = {
             isolate: isolateObjectsInViewer,
             hide: hideObjectsInViewer,
             highlight: highlightObjectsInViewer,
           };
           if (actions[dataRes.action]) {
-            actions[dataRes.action](window.data4Dviewer, dataRes.dbIds);
+            actions[dataRes.action](window.data5Dviewer, dataRes.dbIds);
           }
         }
       } catch (error) {
@@ -680,22 +654,86 @@ import React, {
   
     const handleApplyColorToDiscipline = () => {
       if (
-        window.data4Dviewer &&
-        (window.data4Dviewer as any).applyColorByDiscipline
+        window.data5Dviewer &&
+        (window.data5Dviewer as any).applyColorByDiscipline
       ) {
         const idsToColor = data
           .filter((r) => r.Discipline === selectedDisciplineForColor)
           .map((r) => parseInt(r.dbId!, 10));
-        (window.data4Dviewer as any).applyColorByDiscipline(
+        (window.data5Dviewer as any).applyColorByDiscipline(
           idsToColor,
           selectedColor
         );
       }
     };
+
+    const handleGroupExtraDataChange = (
+      group: string,
+      field: string,
+      value: string
+    ) => {
+      setGroupExtraData((prev) => ({
+        ...prev,
+        [group]: {
+          ...prev[group],
+          [field]: value,
+        },
+      }));
+    };
+
+    const calculateGroupTotal = (group: string) => {
+      const extra = groupExtraData[group] || {};
+      const quantity = parseFloat(extra.Quantity || "0") || 0;
+      const price = parseFloat(extra.UnitPrice || "0") || 0;
+      const total = quantity * price;
+      return total ? total.toFixed(2) : "";
+    };
+
+    const nestedGroupData = useMemo(() => {
+      const grouped: Record<string, Record<string, IRowData[]>> = {};
+      data.forEach((row) => {
+        const discipline = String(row.Discipline || "No Discipline");
+        const code = String(row.Code || "No Code");
+        if (!grouped[discipline]) grouped[discipline] = {};
+        if (!grouped[discipline][code]) grouped[discipline][code] = [];
+        grouped[discipline][code].push(row);
+      });
+      return grouped;
+    }, [data]);
+
+    useEffect(() => {
+      Object.entries(groupExtraData).forEach(([groupKey, extra]) => {
+        const unit = extra.Unit;
+        if (!unit) return;
+
+        const [discipline, code] = groupKey.split("||");
+        const rows = nestedGroupData[discipline]?.[code] || [];
+        let total = 0;
+
+        if (unit === "m" || unit === "kg/m") {
+          total = rows.reduce((sum, r) => sum + (parseFloat(String(r.Length || 0)) || 0), 0);
+        } else if (unit === "m2") {
+          total = rows.reduce((sum, r) => sum + (parseFloat(String(r.Area || 0)) || 0), 0);
+        } else if (unit === "m3") {
+          total = rows.reduce((sum, r) => sum + (parseFloat(String(r.Volume || 0)) || 0), 0);
+        }
+
+        const newQuantity = total.toFixed(2);
+        if (newQuantity !== extra.Quantity) {
+          setGroupExtraData((prev) => ({
+            ...prev,
+            [groupKey]: {
+              ...prev[groupKey],
+              Quantity: newQuantity,
+            },
+          }));
+        }
+      });
+    }, [groupExtraData, nestedGroupData]);
   
     useEffect(() => {
       localStorage.setItem(
-        "conversationHistory",
+        "conversationHistory5D",
         JSON.stringify(conversationHistory)
       );
     }, [conversationHistory]);
@@ -730,7 +768,7 @@ import React, {
             {/* Header Area with Model Selection */}
             <div className="mb-6 flex justify-between items-center">
               <h1 className="text-2xl font-bold text-gray-900">
-                Model Database 4D{selectedModel?.name ? ` — ${selectedModel.name}` : ""}
+                Model Database 5D{selectedModel?.name ? ` — ${selectedModel.name}` : ""}
               </h1>
   
               {/* MODEL SELECTION DIALOG */}
@@ -807,7 +845,7 @@ import React, {
   
             <div className="mb-6">
               <ControlPanel
-                viewer={window.data4Dviewer}
+                viewer={window.data5Dviewer}
                 showViewer={showViewer}
                 toggleViewer={handleToggleViewer}
                 showAIpanel={showAIpanel}
@@ -864,7 +902,7 @@ import React, {
                       </div>
                       <h3 className="font-medium text-gray-900">No Model Selected</h3>
                       <p className="text-sm mt-1 mb-4">
-                        Select a model to start 4D visualization.
+                        Select a model to start 5D visualization.
                       </p>
   
                       <Button variant="outline" onClick={openModelDialogAndFetch}>
@@ -879,8 +917,8 @@ import React, {
               <div
                 className={`transition-all duration-300 flex flex-col ${tableWidthClass}`}
               >
-                <Database4DTable
-                  viewer={window.data4Dviewer}
+                <Database5DTable
+                  viewer={window.data5Dviewer}
                   data={data}
                   totalsByDiscipline={totalsByDiscipline}
                   grandTotals={grandTotals}
@@ -897,6 +935,9 @@ import React, {
                   setSelectedRows={setSelectedRows}
                   lastClickedRowNumber={lastClickedRowNumber}
                   setLastClickedRowNumber={setLastClickedRowNumber}
+                  groupExtraData={groupExtraData}
+                  handleGroupExtraDataChange={handleGroupExtraDataChange}
+                  calculateGroupTotal={calculateGroupTotal}
                 />
               </div>
   
@@ -959,34 +1000,12 @@ import React, {
             </div>
   
             <div className="h-6"></div>
-  
-            {/* Slider 4D */}
-            <div className="bg-white border rounded-xl shadow-sm p-6">
-              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                4D Sequence Control
-              </h3>
-              <input
-                type="range"
-                id="dateSlider"
-                min="0"
-                max="100"
-                step="1"
-                defaultValue="0"
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                disabled={!selectedUrn}
-              />
-              <div
-                id="currentDateDisplay"
-                className="mt-2 text-sm text-gray-500 font-medium text-right"
-              >
-                Current date: N/A
-              </div>
-            </div>
           </div>
         </div>
       </div>
     );
   };
   
-  export default React.memo(ACC4DDatabasePage);
+  export default React.memo(Acc5DDatabasePage);
+
+

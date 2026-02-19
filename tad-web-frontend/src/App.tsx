@@ -24,6 +24,12 @@ import ACCProjectIssuesPage from '@/pages/tad-hub/acc/AccProjectIssuesPage';
 import ACCProjectRfisPage from '@/pages/tad-hub/acc/AccProjectRfisPage';
 import ACCProjectSubmittalsPage from '@/pages/tad-hub/acc/AccProjectSubmittalsPage';
 import ACC4DDatabasePage from '@/pages/tad-hub/acc/Acc4DDatabasePage';
+import Acc5DDatabasePage from '@/pages/tad-hub/acc/Acc5DDatabasePage';
+import Acc6DDatabasePage from '@/pages/tad-hub/acc/Acc6DDatabasePage';
+import AccProjectPlansPage from '@/pages/tad-hub/acc/AccProjectPlansPage';
+import AccTaskManagementPage from '@/pages/tad-hub/acc/AccTaskManagementPage';
+import AccLodCheckerPage from '@/pages/tad-hub/acc/AccLodCheckerPage';
+import AccVrPage from '@/pages/tad-hub/acc/AccVrPage';
 
 // BIM360
 import Bim360ProjectsPage from '@/pages/tad-hub/bim360/Bim360ProjectsPage';
@@ -31,6 +37,13 @@ import Bim360ProjectPage from '@/pages/tad-hub/bim360/Bim360ProjectPage';
 import Bim360ProjectIssuesPage from '@/pages/tad-hub/bim360/Bim360ProjectIssuesPage'; 
 import Bim360ProjectRfisPage from './pages/tad-hub/bim360/Bim360ProjectRfisPage';
 import Bim360ProjectUsersPage from './pages/tad-hub/bim360/Bim360ProjectUsersPage';
+import Bim3604DDatabasePage from './pages/tad-hub/bim360/Bim3604DDatabasePage';
+import Bim3605DDatabasePage from './pages/tad-hub/bim360/Bim3605DDatabasePage';
+import Bim3606DDatabasePage from './pages/tad-hub/bim360/Bim3606DDatabasePage';
+import Bim360ProjectPlansPage from './pages/tad-hub/bim360/Bim360ProjectPlansPage';
+import Bim360TaskManagementPage from './pages/tad-hub/bim360/Bim360TaskManagementPage';
+import Bim360LodCheckerPage from './pages/tad-hub/bim360/Bim360LodCheckerPage';
+import Bim360VrPage from './pages/tad-hub/bim360/Bim360VrPage';
 
 
 function App() {
@@ -67,6 +80,13 @@ function App() {
         <Route path="/bim360projects/:accountId/:projectId/users" element={<Bim360ProjectUsersPage />} />
         <Route path="/bim360projects/:accountId/:projectId/issues" element={<Bim360ProjectIssuesPage />} />
         <Route path="/bim360projects/:accountId/:projectId/rfis" element={<Bim360ProjectRfisPage />} />
+        <Route path="/bim360projects/:accountId/:projectId/b3604ddata" element={<Bim3604DDatabasePage />} />
+        <Route path="/bim360projects/:accountId/:projectId/b3605ddata" element={<Bim3605DDatabasePage />} />
+        <Route path="/bim360projects/:accountId/:projectId/b3606ddata" element={<Bim3606DDatabasePage />} />
+        <Route path="/bim360projects/:accountId/:projectId/plans" element={<Bim360ProjectPlansPage />} />
+        <Route path="/bim360projects/:accountId/:projectId/task-manager" element={<Bim360TaskManagementPage />} />
+        <Route path="/bim360projects/:accountId/:projectId/lod-checker" element={<Bim360LodCheckerPage />} />
+        <Route path="/bim360projects/:accountId/:projectId/vr" element={<Bim360VrPage />} />
 
 
         {/* ACC */}
@@ -76,6 +96,12 @@ function App() {
         <Route path="/accprojects/:accountId/:projectId/rfis" element={<ACCProjectRfisPage />} />
         <Route path="/accprojects/:accountId/:projectId/submittals" element={<ACCProjectSubmittalsPage />} />
         <Route path="/accprojects/:accountId/:projectId/acc4ddata" element={<ACC4DDatabasePage />} />
+        <Route path="/accprojects/:accountId/:projectId/acc5ddata" element={<Acc5DDatabasePage />} />
+        <Route path="/accprojects/:accountId/:projectId/acc6ddata" element={<Acc6DDatabasePage />} />
+        <Route path="/accprojects/:accountId/:projectId/plans" element={<AccProjectPlansPage />} />
+        <Route path="/accprojects/:accountId/:projectId/task-manager" element={<AccTaskManagementPage />} />
+        <Route path="/accprojects/:accountId/:projectId/lod-checker" element={<AccLodCheckerPage />} />
+        <Route path="/accprojects/:accountId/:projectId/vr" element={<AccVrPage />} />
         
       
       </Route>

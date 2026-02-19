@@ -125,6 +125,7 @@ const ACCProjectPage = () => {
       setLoadingModels(true);
       // Data Management API usa "b." + accountId generalmente como Hub ID
       const data = await DmService.getProjectModels(projectId, accountId);
+      console.log("Fetched models:", data);
       setModels(data.data || []);
     } catch (err) {
       console.error("Error fetching models:", err);

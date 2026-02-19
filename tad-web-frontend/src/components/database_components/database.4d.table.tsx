@@ -288,7 +288,10 @@ import React, {
                   <SelectTrigger className="h-8 text-sm bg-white text-black" onMouseDown={(e) => e.stopPropagation()}>
                     <SelectValue placeholder="Discipline" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white text-black">
+                  <SelectContent
+                    className="bg-white text-black max-h-64 overflow-y-auto overscroll-contain"
+                    onWheel={(e) => e.stopPropagation()}
+                  >
                     {disciplineOptions.map((opt) => (
                       <SelectItem key={opt} value={opt} className="bg-white text-black">
                         {opt}
@@ -319,7 +322,10 @@ import React, {
                       )}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent
+                    className="max-h-64 overflow-y-auto overscroll-contain"
+                    onWheel={(e) => e.stopPropagation()}
+                  >
                     {elementtype.map((type) => {
                       const c = elementTypeColorMap[type] || fallbackTypeColor;
                       return (

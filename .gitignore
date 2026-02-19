@@ -50,3 +50,4 @@ tad-web-frontend/build/
 # --- Otros ---
 # Logs de errores locales
 *.log
+.aider*

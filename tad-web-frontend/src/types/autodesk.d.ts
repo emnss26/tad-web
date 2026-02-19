@@ -21,6 +21,8 @@ declare namespace Autodesk {
       setThemingColor(dbId: number | null, color: THREE.Vector4 | null, model?: any): void;
       clearThemingColors(): void;
       isNodeHidden(dbId: number): boolean;
+      getToolbar(create?: boolean): any;
+      loadExtension(extensionId: string): Promise<any>;
       model: any;
       toolbar: any;
     }
