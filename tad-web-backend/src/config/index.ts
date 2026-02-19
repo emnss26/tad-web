@@ -75,6 +75,7 @@ export const config = {
         master: process.env.DYNAMODB_TABLE_MASTER || 'Tad_Master_DataBase',
         projects: process.env.DYNAMODB_TABLE_PROJECTS || 'Tad_Project_DataBase',
         models: process.env.DYNAMODB_TABLE_MODELS || 'Tad_Model_Data',
+        management: process.env.DYNAMODB_TABLE_MANAGEMENT || 'Tad_Management_DataBase',
       }
     }
   }

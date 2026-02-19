@@ -17,6 +17,9 @@ import authRouter from './routes/auth.router';
 import bim360Router from './routes/bim360.router';
 import dmRouter from './routes/dm.router';
 import modeldataRouter from './routes/modeldata.router';
+import taskRouter from './routes/task.router';
+import modelCheckerRouter from './routes/model.checker.router';
+import plansRouter from './routes/plans.router';
 
 // ----------------------------------------------------------------------
 // 1. Definición de Tipos (TypeScript)
@@ -119,6 +122,9 @@ app.use('/api/acc', accRouter);
 app.use('/api/bim360', bim360Router);
 app.use('/api/dm', dmRouter);
 app.use('/api/modeldata', modeldataRouter);
+app.use('/api/task', taskRouter);
+app.use('/api/model-checker', modelCheckerRouter);
+app.use('/api/plans', plansRouter);
 
 // ----------------------------------------------------------------------
 // 6. Lógica de WebSockets (Socket.IO)

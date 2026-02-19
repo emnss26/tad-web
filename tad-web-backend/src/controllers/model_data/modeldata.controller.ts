@@ -1,7 +1,17 @@
 import { Request, Response } from "express";
 import { ModelDataService } from "../../services/modeldata.service";
+import { getToken } from "../../utils/auth/auth.utils";
 
 export async function postModelData(req: Request, res: Response) {
+  const token = getToken(req);
+  if (!token) {
+    return res.status(401).json({
+      data: null,
+      error: "Unauthorized",
+      message: "Authorization token is required.",
+    });
+  }
+
   const { accountId, projectId, modelId } = req.params;
   const rows = Array.isArray(req.body) ? req.body : [];
 
@@ -15,6 +25,15 @@ export async function postModelData(req: Request, res: Response) {
 }
 
 export async function getModelData(req: Request, res: Response) {
+  const token = getToken(req);
+  if (!token) {
+    return res.status(401).json({
+      data: null,
+      error: "Unauthorized",
+      message: "Authorization token is required.",
+    });
+  }
+
   const { accountId, projectId, modelId } = req.params;
   const { discipline } = req.query as { discipline?: string };
 
@@ -34,6 +53,15 @@ export async function getModelData(req: Request, res: Response) {
 }
 
 export async function patchModelData(req: Request, res: Response) {
+  const token = getToken(req);
+  if (!token) {
+    return res.status(401).json({
+      data: null,
+      error: "Unauthorized",
+      message: "Authorization token is required.",
+    });
+  }
+
   const { accountId, projectId, modelId, dbId } = req.params;
   const { field, value } = req.body;
 

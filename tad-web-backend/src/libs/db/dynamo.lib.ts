@@ -4,6 +4,7 @@ import {
   BatchWriteCommand,
   QueryCommand,
   UpdateCommand,
+  DeleteCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { dynamoDbClient } from "./dynamo.client";
 
@@ -25,6 +26,13 @@ export const DynamoLib = {
       new GetCommand({ TableName: tableName, Key: key })
     );
     return result.Item;
+  },
+
+  deleteItem: async (tableName: string, key: Record<string, any>) => {
+    await dynamoDbClient.send(
+      new DeleteCommand({ TableName: tableName, Key: key })
+    );
+    return true;
   },
 
   // ✅ Query por PK (paginado)

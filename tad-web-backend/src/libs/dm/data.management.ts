@@ -153,6 +153,22 @@ export const DataManagementLib = {
     }
   },
 
+  /**
+   * Obtiene versiones de un item.
+   * Endpoint: GET /data/v1/projects/:project_id/items/:item_id/versions
+   */
+  getItemVersions: async (token: string, projectId: string, itemId: string) => {
+    try {
+      const response = await axios.get(`${DATA_API_URL}/projects/${projectId}/items/${itemId}/versions`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching Item Versions:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
   // ==========================================
   // VERSIONS (Versiones de Archivos)
   // ==========================================

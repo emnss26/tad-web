@@ -5,7 +5,6 @@ import { GetBim360ProjectUsers } from '../controllers/bim360/bim360.project.user
 import { GetBim360Issues } from '../controllers/bim360/bim360.project.issues.controller';
 import { GetBim360Rfis } from '../controllers/bim360/bim360.project.rfis.controller';
 
-
 const router = Router();
 
 // GET /api/bim360/projects

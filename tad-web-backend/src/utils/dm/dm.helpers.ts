@@ -19,6 +19,17 @@ export interface FileItem {
     versionNumber?: number; // Opcional, por si quieres la punta
 }
 
+export interface FolderContentNode {
+    id: string;
+    name: string;
+    type: 'folder' | 'file';
+    children?: FolderContentNode[];
+    versiontype?: string | null;
+    version?: number | null;
+    version_urn?: string | null;
+    versionschema?: string | null;
+}
+
 /**
  * Helper recursivo para armar el árbol de carpetas (solo carpetas)
  */
@@ -116,4 +127,53 @@ export const searchFilesRecursively = async (
     });
 
     return collectedFiles;
+};
+
+/**
+ * Helper recursivo para armar un Ã¡rbol de carpetas + archivos.
+ * Se usa en el flujo de project plans para mapping de archivos por carpeta.
+ */
+export const buildFolderContentTreeRecursively = async (
+    token: string,
+    projectId: string,
+    folderId: string,
+    folderName: string
+): Promise<FolderContentNode> => {
+    const contents = await DataManagementLib.getFolderContents(token, projectId, folderId);
+    const entries = contents?.data || [];
+
+    const folders = entries.filter((item: any) => item.type === 'folders');
+    const files = entries.filter((item: any) => item.type === 'items');
+
+    const folderChildren = await Promise.all(
+        folders.map(async (folder: any) => {
+            return await buildFolderContentTreeRecursively(
+                token,
+                projectId,
+                folder.id,
+                folder.attributes?.name || folder.attributes?.displayName || 'Folder'
+            );
+        })
+    );
+
+    const fileChildren: FolderContentNode[] = files.map((file: any) => ({
+        id: file.id,
+        name: file.attributes?.displayName || file.attributes?.name || 'Unnamed file',
+        type: 'file',
+        versiontype: file.attributes?.extension?.type === 'versions:autodesk.bim360:File'
+            ? file.attributes?.extension?.data?.id || null
+            : null,
+        version: typeof file.attributes?.extension?.version === 'number'
+            ? file.attributes.extension.version
+            : null,
+        version_urn: file.relationships?.tip?.data?.id || null,
+        versionschema: file.attributes?.extension?.schema || null,
+    }));
+
+    return {
+        id: folderId,
+        name: folderName,
+        type: 'folder',
+        children: [...folderChildren, ...fileChildren],
+    };
 };

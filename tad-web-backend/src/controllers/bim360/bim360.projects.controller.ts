@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { DataManagementLib } from '../../libs/dm/data.management';
 import { Bim360AdminLib } from '../../libs/bim360/bim360.admin';
 import { getToken } from '../../utils/auth/auth.utils';
-import { config } from '../../config';
 
 export const GetBim360Projects = async (req: Request, res: Response) => {
 
@@ -21,23 +20,17 @@ export const GetBim360Projects = async (req: Request, res: Response) => {
       const hubsData = await DataManagementLib.getHubs(token);
       const hubsList = hubsData.data || [];
 
-      // 2. Filter authorized hubs based on config
-      const authorizedHubIds = config.accessControl.authorizedHubs.map((h: any) => h.id);
-      
-      const targetHubs = hubsList.filter((hub: any) => 
-        authorizedHubIds.includes(hub.id)
-      );
-
-      if (targetHubs.length === 0) {
+      // 2. Iterate all hubs the user can access (multi-hub projects support)
+      if (hubsList.length === 0) {
         return res.status(404).json({
           data: null,
           error: "Hub not found",
-          message: "No authorized hubs found for this user.",
+          message: "No hubs found for this user.",
         });
       }
 
       // 3. Fetch projects from each authorized hub in parallel using Admin Lib
-      const projectsPromises = targetHubs.map(async (hub: any) => {
+      const projectsPromises = hubsList.map(async (hub: any) => {
         try {
           // Note: Hub ID format is "b.guid", Account ID is just "guid". We strip the prefix.
           const accountId = hub.id.replace(/^b\./, '');
@@ -45,7 +38,13 @@ export const GetBim360Projects = async (req: Request, res: Response) => {
           // Pagination is handled automatically by the Lib helper
           // Usamos 'getAccountProjects' para mantener simetría con ACC
           const projects = await Bim360AdminLib.getProjects(token, accountId);
-          return Array.isArray(projects) ? projects : [];
+          const normalized = Array.isArray(projects) ? projects : [];
+          return normalized.map((project: any) => ({
+            ...project,
+            accountId,
+            relationships: project.relationships || { hub: { data: { id: hub.id } } },
+            hubId: hub.id,
+          }));
         } catch (error: any) {
           console.error(`Error fetching BIM360 projects for hub ${hub.id}:`, error.message);
           return [];
@@ -54,10 +53,16 @@ export const GetBim360Projects = async (req: Request, res: Response) => {
 
       const projectsArrays = await Promise.all(projectsPromises);
       const allProjects = projectsArrays.flat();
+      const dedupMap = new Map<string, any>();
+      allProjects.forEach((project: any) => {
+        if (!project?.id) return;
+        if (!dedupMap.has(project.id)) dedupMap.set(project.id, project);
+      });
+      const dedupedProjects = Array.from(dedupMap.values());
 
       // 4. Filter specifically for BIM360 Projects
       // La API de HQ (Bim360) a veces devuelve proyectos ACC, debemos filtrarlos.
-      const bim360Projects = allProjects.filter((project: any) => {
+      const bim360Projects = dedupedProjects.filter((project: any) => {
         return project.projectType === 'BIM360' || project.platform === 'bim360'; 
       });
 
