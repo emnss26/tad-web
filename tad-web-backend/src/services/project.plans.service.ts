@@ -1,115 +1,126 @@
 import config from "../config";
 import { DynamoLib } from "../libs/db/dynamo.lib";
+import {
+  buildSheetKey,
+  computePlanStatus,
+  normalizeDiscipline,
+  normalizeIsoDate,
+  normalizeProjectId,
+  normalizeSheetNumber,
+} from "../utils/db/dynamo.keys";
 
-const TABLE = config.aws.dynamo.tableName.management;
+const TABLE = config.aws.dynamo.tableName.plans;
 const KEY = {
   pk: "projectId",
-  sk: "service",
+  sk: "sheetKey",
 };
 
-const PLANS_ENTITY = "plans";
-
 const ALLOWED_PATCH_FIELDS = new Set([
-  "Id",
-  "SheetName",
-  "SheetNumber",
+  "discipline",
+  "sheetNumber",
+  "revision",
+  "plannedGenerationDate",
+  "plannedIssueDate",
+  "actualGenerationDate",
+  "actualIssueDate",
+  "status",
+  "sheetName",
   "Discipline",
+  "SheetNumber",
   "Revision",
-  "LastModifiedDate",
-  "InFolder",
-  "InARevisionProcess",
-  "RevisionStatus",
+  "PlannedGenerationDate",
+  "PlannedIssueDate",
+  "ActualGenerationDate",
+  "ActualIssueDate",
+  "SheetName",
 ]);
 
 export interface ProjectPlanRecord {
   _key: string;
-  Id: string;
-  SheetName: string;
-  SheetNumber: string;
-  Discipline: string;
-  Revision: string;
-  LastModifiedDate: string;
-  InFolder: boolean;
-  InARevisionProcess: string;
-  RevisionStatus: string;
-}
-
-function normalizeProjectId(projectId: string): string {
-  return String(projectId || "").startsWith("b.")
-    ? String(projectId).substring(2)
-    : String(projectId || "");
+  discipline: string;
+  sheetNumber: string;
+  revision: string;
+  plannedGenerationDate: string;
+  plannedIssueDate: string;
+  actualGenerationDate: string;
+  actualIssueDate: string;
+  status: "PLANNED" | "GENERATED" | "ISSUED";
+  updatedAt: string;
+  sheetName?: string;
 }
 
 function normalizeAccountId(accountId: string): string {
-  return String(accountId || "").startsWith("b.")
-    ? String(accountId).substring(2)
-    : String(accountId || "");
+  return accountId.startsWith("b.") ? accountId.substring(2) : accountId;
 }
 
 function cleanText(value: unknown, maxLen = 300): string {
-  const cleaned = String(value ?? "").trim();
-  if (!cleaned) return "";
-  return cleaned.slice(0, maxLen);
+  return String(value ?? "").trim().slice(0, maxLen);
 }
 
-function toBoolean(value: unknown): boolean {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "number") return value > 0;
-  const text = String(value ?? "")
-    .trim()
-    .toLowerCase();
-  return text === "true" || text === "1" || text === "yes" || text === "y";
+function fromAnyDate(value: unknown): string {
+  return normalizeIsoDate(value);
 }
 
-function normalizeDate(value: unknown): string {
-  const raw = cleanText(value, 80);
-  if (!raw) return "";
+function normalizeInput(raw: any): ProjectPlanRecord | null {
+  const discipline = normalizeDiscipline(raw?.discipline || raw?.Discipline);
+  const sheetNumber = normalizeSheetNumber(raw?.sheetNumber || raw?.SheetNumber);
 
-  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-    return raw;
-  }
+  if (!discipline || !sheetNumber) return null;
 
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) return "";
-  return parsed.toISOString().split("T")[0];
-}
-
-function buildPlanSortKey(sheetNumber: string): string {
-  return `PLANS#${sheetNumber}`;
-}
-
-function mapItemToPlan(item: any): ProjectPlanRecord {
-  const sheetNumber = cleanText(item?.sheetNumber || item?.SheetNumber, 120);
+  const plannedGenerationDate = fromAnyDate(
+    raw?.plannedGenerationDate ?? raw?.PlannedGenerationDate ?? raw?.LastModifiedDate
+  );
+  const plannedIssueDate = fromAnyDate(raw?.plannedIssueDate ?? raw?.PlannedIssueDate);
+  const actualGenerationDate = fromAnyDate(raw?.actualGenerationDate ?? raw?.ActualGenerationDate);
+  const actualIssueDate = fromAnyDate(raw?.actualIssueDate ?? raw?.ActualIssueDate);
 
   return {
-    _key: sheetNumber,
-    Id: cleanText(item?.planId || item?.Id || sheetNumber, 120),
-    SheetName: cleanText(item?.sheetName || item?.SheetName, 240),
-    SheetNumber: sheetNumber,
-    Discipline: cleanText(item?.discipline || item?.Discipline, 120),
-    Revision: cleanText(item?.revision || item?.Revision, 120),
-    LastModifiedDate: normalizeDate(item?.lastModifiedDate || item?.LastModifiedDate),
-    InFolder: toBoolean(item?.inFolder ?? item?.InFolder),
-    InARevisionProcess: cleanText(item?.revisionProcess || item?.InARevisionProcess, 120),
-    RevisionStatus: cleanText(item?.revisionStatus || item?.RevisionStatus, 120),
+    _key: buildSheetKey(discipline, sheetNumber),
+    discipline,
+    sheetNumber,
+    revision: cleanText(raw?.revision ?? raw?.Revision, 80),
+    plannedGenerationDate,
+    plannedIssueDate,
+    actualGenerationDate,
+    actualIssueDate,
+    status: computePlanStatus(actualGenerationDate, actualIssueDate),
+    updatedAt: new Date().toISOString(),
+    sheetName: cleanText(raw?.sheetName ?? raw?.SheetName, 240) || undefined,
   };
 }
 
-function normalizePlanInput(raw: any): ProjectPlanRecord | null {
-  const sheetNumber = cleanText(raw?.SheetNumber, 120);
-  if (!sheetNumber) return null;
+function mapItemToPlan(item: any): ProjectPlanRecord & Record<string, any> {
+  const discipline = normalizeDiscipline(item?.discipline || item?.Discipline);
+  const sheetNumber = normalizeSheetNumber(item?.sheetNumber || item?.SheetNumber);
+  const plannedGenerationDate = fromAnyDate(item?.plannedGenerationDate || item?.PlannedGenerationDate);
+  const plannedIssueDate = fromAnyDate(item?.plannedIssueDate || item?.PlannedIssueDate);
+  const actualGenerationDate = fromAnyDate(item?.actualGenerationDate || item?.ActualGenerationDate);
+  const actualIssueDate = fromAnyDate(item?.actualIssueDate || item?.ActualIssueDate);
+  const status = computePlanStatus(actualGenerationDate, actualIssueDate);
+  const updatedAt = fromAnyDate(item?.updatedAt) || new Date().toISOString();
 
   return {
-    _key: sheetNumber,
-    Id: cleanText(raw?.Id || sheetNumber, 120),
-    SheetName: cleanText(raw?.SheetName, 240),
+    _key: item?.sheetKey || buildSheetKey(discipline, sheetNumber),
+    discipline,
+    sheetNumber,
+    revision: cleanText(item?.revision || item?.Revision, 80),
+    plannedGenerationDate,
+    plannedIssueDate,
+    actualGenerationDate,
+    actualIssueDate,
+    status,
+    updatedAt,
+    sheetName: cleanText(item?.sheetName || item?.SheetName, 240) || undefined,
+    // Backward-compatible fields for current frontend
+    Id: item?.sheetKey || buildSheetKey(discipline, sheetNumber),
+    SheetName: cleanText(item?.sheetName || item?.SheetName, 240),
     SheetNumber: sheetNumber,
-    Discipline: cleanText(raw?.Discipline || "Unassigned", 120),
-    Revision: cleanText(raw?.Revision, 120),
-    LastModifiedDate: normalizeDate(raw?.LastModifiedDate),
-    InFolder: toBoolean(raw?.InFolder),
-    InARevisionProcess: cleanText(raw?.InARevisionProcess, 120),
-    RevisionStatus: cleanText(raw?.RevisionStatus, 120),
+    Discipline: discipline,
+    Revision: cleanText(item?.revision || item?.Revision, 80),
+    LastModifiedDate: updatedAt,
+    InFolder: Boolean(actualGenerationDate),
+    InARevisionProcess: status === "GENERATED" ? "GENERATED" : "",
+    RevisionStatus: status,
   };
 }
 
@@ -117,62 +128,55 @@ export const ProjectPlansService = {
   async upsertPlans(accountId: string, projectId: string, rows: any[]): Promise<ProjectPlanRecord[]> {
     const cleanProjectId = normalizeProjectId(projectId);
     const cleanAccountId = normalizeAccountId(accountId);
+    const now = new Date().toISOString();
 
     const normalizedRows = (rows || [])
-      .map(normalizePlanInput)
+      .map(normalizeInput)
       .filter((row): row is ProjectPlanRecord => Boolean(row));
 
-    const dedupedBySheet = new Map<string, ProjectPlanRecord>();
-    normalizedRows.forEach((row) => {
-      dedupedBySheet.set(row.SheetNumber, row);
-    });
+    const dedup = new Map<string, ProjectPlanRecord>();
+    normalizedRows.forEach((row) => dedup.set(row._key, row));
+    const rowsToPersist = Array.from(dedup.values());
 
-    const rowsToPersist = Array.from(dedupedBySheet.values());
     if (!rowsToPersist.length) return [];
-
-    const now = new Date().toISOString();
 
     const items = rowsToPersist.map((row) => ({
       [KEY.pk]: cleanProjectId,
-      [KEY.sk]: buildPlanSortKey(row.SheetNumber),
-      entityType: PLANS_ENTITY,
+      [KEY.sk]: row._key,
       accountId: cleanAccountId,
-      planId: row.Id,
-      sheetName: row.SheetName,
-      sheetNumber: row.SheetNumber,
-      discipline: row.Discipline,
-      revision: row.Revision,
-      lastModifiedDate: row.LastModifiedDate,
-      inFolder: row.InFolder,
-      revisionProcess: row.InARevisionProcess,
-      revisionStatus: row.RevisionStatus,
+      discipline: row.discipline,
+      sheetNumber: row.sheetNumber,
+      revision: row.revision,
+      plannedGenerationDate: row.plannedGenerationDate,
+      plannedIssueDate: row.plannedIssueDate,
+      actualGenerationDate: row.actualGenerationDate,
+      actualIssueDate: row.actualIssueDate,
+      status: computePlanStatus(row.actualGenerationDate, row.actualIssueDate),
+      sheetName: row.sheetName || "",
       updatedAt: now,
       createdAt: now,
     }));
 
     await DynamoLib.batchWriteWithRetry(TABLE, items);
-    return rowsToPersist;
+    return items.map(mapItemToPlan);
   },
 
   async getPlans(accountId: string, projectId: string, discipline?: string): Promise<ProjectPlanRecord[]> {
     const cleanProjectId = normalizeProjectId(projectId);
     const cleanAccountId = normalizeAccountId(accountId);
-    const normalizedDiscipline = cleanText(discipline || "", 120).toLowerCase();
+    const wantedDiscipline = normalizeDiscipline(discipline || "");
 
-    const allItems = await DynamoLib.queryByPK({
+    const all = await DynamoLib.queryByPK({
       tableName: TABLE,
       pkName: KEY.pk,
       pkValue: cleanProjectId,
     });
 
-    return (allItems || [])
-      .filter((item: any) => item?.entityType === PLANS_ENTITY && item?.accountId === cleanAccountId)
+    return (all || [])
+      .filter((item: any) => !item?.accountId || item.accountId === cleanAccountId)
       .map(mapItemToPlan)
-      .filter((item) => {
-        if (!normalizedDiscipline || normalizedDiscipline === "all disciplines") return true;
-        return item.Discipline.toLowerCase() === normalizedDiscipline;
-      })
-      .sort((a, b) => a.SheetNumber.localeCompare(b.SheetNumber));
+      .filter((item) => !wantedDiscipline || item.discipline === wantedDiscipline)
+      .sort((a, b) => a.sheetNumber.localeCompare(b.sheetNumber));
   },
 
   async patchPlanField(
@@ -186,116 +190,96 @@ export const ProjectPlansService = {
       throw new Error(`Field not allowed: ${field}`);
     }
 
-    const cleanProjectId = normalizeProjectId(projectId);
-    const cleanAccountId = normalizeAccountId(accountId);
-    const cleanId = cleanText(id, 120);
+    const plans = await ProjectPlansService.getPlans(accountId, projectId);
+    const current = plans.find((plan: any) => plan._key === id || plan.sheetNumber === id || plan.SheetNumber === id);
+    if (!current) return false;
 
-    if (!cleanId) return false;
+    const patchField =
+      field === "Discipline"
+        ? "discipline"
+        : field === "SheetNumber"
+          ? "sheetNumber"
+          : field === "Revision"
+            ? "revision"
+            : field === "PlannedGenerationDate"
+              ? "plannedGenerationDate"
+              : field === "PlannedIssueDate"
+                ? "plannedIssueDate"
+                : field === "ActualGenerationDate"
+                  ? "actualGenerationDate"
+                  : field === "ActualIssueDate"
+                    ? "actualIssueDate"
+                    : field === "SheetName"
+                      ? "sheetName"
+                      : field;
 
-    const key = {
-      [KEY.pk]: cleanProjectId,
-      [KEY.sk]: buildPlanSortKey(cleanId),
-    };
-
-    let item = await DynamoLib.getItem(TABLE, key);
-
-    if (!item || item.entityType !== PLANS_ENTITY || item.accountId !== cleanAccountId) {
-      const all = await ProjectPlansService.getPlans(accountId, projectId);
-      const fallback = all.find((plan) => plan._key === cleanId || plan.Id === cleanId);
-      if (!fallback) return false;
-
-      item = await DynamoLib.getItem(TABLE, {
-        [KEY.pk]: cleanProjectId,
-        [KEY.sk]: buildPlanSortKey(fallback._key),
-      });
-
-      if (!item) return false;
-    }
-
-    const mappedField =
-      field === "Id"
-        ? "planId"
-        : field === "SheetName"
-          ? "sheetName"
-          : field === "SheetNumber"
-            ? "sheetNumber"
-            : field === "Discipline"
-              ? "discipline"
-              : field === "Revision"
-                ? "revision"
-                : field === "LastModifiedDate"
-                  ? "lastModifiedDate"
-                  : field === "InFolder"
-                    ? "inFolder"
-                    : field === "InARevisionProcess"
-                      ? "revisionProcess"
-                      : field === "RevisionStatus"
-                        ? "revisionStatus"
-                        : field;
-
-    const nextItem: any = {
-      ...item,
-      [mappedField]:
-        mappedField === "inFolder"
-          ? toBoolean(value)
-          : mappedField === "lastModifiedDate"
-            ? normalizeDate(value)
-            : cleanText(value, 240),
+    const next = {
+      ...current,
+      [patchField]:
+        patchField.includes("Date")
+          ? fromAnyDate(value)
+          : patchField === "discipline"
+            ? normalizeDiscipline(String(value))
+            : patchField === "sheetNumber"
+              ? normalizeSheetNumber(String(value))
+              : cleanText(value, 240),
       updatedAt: new Date().toISOString(),
     };
 
-    if (mappedField === "sheetNumber" && nextItem.sheetNumber) {
-      const oldSortKey = item[KEY.sk];
-      const newSortKey = buildPlanSortKey(cleanText(nextItem.sheetNumber, 120));
-      nextItem[KEY.sk] = newSortKey;
+    next.status = computePlanStatus(next.actualGenerationDate, next.actualIssueDate);
+    next._key = buildSheetKey(next.discipline, next.sheetNumber);
 
-      await DynamoLib.saveItem(TABLE, nextItem);
-      if (oldSortKey !== newSortKey) {
-        await DynamoLib.deleteItem(TABLE, {
-          [KEY.pk]: cleanProjectId,
-          [KEY.sk]: oldSortKey,
-        });
-      }
-      return true;
+    const cleanProjectId = normalizeProjectId(projectId);
+    const cleanAccountId = normalizeAccountId(accountId);
+
+    const item = {
+      [KEY.pk]: cleanProjectId,
+      [KEY.sk]: next._key,
+      accountId: cleanAccountId,
+      discipline: next.discipline,
+      sheetNumber: next.sheetNumber,
+      revision: next.revision,
+      plannedGenerationDate: next.plannedGenerationDate,
+      plannedIssueDate: next.plannedIssueDate,
+      actualGenerationDate: next.actualGenerationDate,
+      actualIssueDate: next.actualIssueDate,
+      status: next.status,
+      sheetName: next.sheetName || "",
+      updatedAt: next.updatedAt,
+      createdAt: (current as any).createdAt || next.updatedAt,
+    };
+
+    await DynamoLib.saveItem(TABLE, item);
+
+    if (current._key !== next._key) {
+      await DynamoLib.deleteItem(TABLE, {
+        [KEY.pk]: cleanProjectId,
+        [KEY.sk]: current._key,
+      });
     }
 
-    await DynamoLib.saveItem(TABLE, nextItem);
     return true;
   },
 
   async deletePlans(accountId: string, projectId: string, ids: string[]): Promise<number> {
     const cleanProjectId = normalizeProjectId(projectId);
-    const cleanAccountId = normalizeAccountId(accountId);
-    const cleanIds = Array.from(
-      new Set((ids || []).map((id) => cleanText(id, 120)).filter(Boolean))
+    const plans = await ProjectPlansService.getPlans(accountId, projectId);
+
+    const wanted = new Set((ids || []).map((id) => cleanText(id, 260)).filter(Boolean));
+    const targets = plans.filter((plan: any) =>
+      wanted.has(plan._key) || wanted.has(plan.sheetNumber) || wanted.has(plan.SheetNumber)
     );
 
-    if (!cleanIds.length) return 0;
+    await Promise.all(
+      targets.map((plan: any) =>
+        DynamoLib.deleteItem(TABLE, {
+          [KEY.pk]: cleanProjectId,
+          [KEY.sk]: plan._key,
+        })
+      )
+    );
 
-    const existingPlans = await ProjectPlansService.getPlans(accountId, projectId);
-    const existingByKey = new Map(existingPlans.map((plan) => [plan._key, plan]));
-    const existingById = new Map(existingPlans.map((plan) => [plan.Id, plan]));
-
-    let deleted = 0;
-
-    for (const id of cleanIds) {
-      const plan = existingByKey.get(id) || existingById.get(id);
-      if (!plan) continue;
-
-      const key = {
-        [KEY.pk]: cleanProjectId,
-        [KEY.sk]: buildPlanSortKey(plan._key),
-      };
-
-      const item = await DynamoLib.getItem(TABLE, key);
-      if (!item || item.entityType !== PLANS_ENTITY || item.accountId !== cleanAccountId) {
-        continue;
-      }
-
-      await DynamoLib.deleteItem(TABLE, key);
-      deleted += 1;
-    }
-
-    return deleted;
+    return targets.length;
   },
 };
+

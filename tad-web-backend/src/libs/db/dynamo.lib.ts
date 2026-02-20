@@ -123,6 +123,35 @@ export const DynamoLib = {
     return true;
   },
 
+  updateItem: async ({
+    tableName,
+    key,
+    updateExpression,
+    expressionAttributeNames,
+    expressionAttributeValues,
+    conditionExpression,
+  }: {
+    tableName: string;
+    key: Record<string, any>;
+    updateExpression: string;
+    expressionAttributeNames?: Record<string, string>;
+    expressionAttributeValues?: Record<string, any>;
+    conditionExpression?: string;
+  }) => {
+    await dynamoDbClient.send(
+      new UpdateCommand({
+        TableName: tableName,
+        Key: key,
+        UpdateExpression: updateExpression,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+        ConditionExpression: conditionExpression,
+      })
+    );
+
+    return true;
+  },
+
   /**
    * ✅ batchWrite (API LEGACY)
    * Tus controllers viejos llaman DynamoLib.batchWrite(...)

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { DataManagementLib } from '../../libs/dm/data.management';
 import { Bim360AdminLib } from '../../libs/bim360/bim360.admin';
 import { getToken } from '../../utils/auth/auth.utils';
+import { config } from '../../config';
 
 export const GetBim360Projects = async (req: Request, res: Response) => {
 
@@ -20,17 +21,20 @@ export const GetBim360Projects = async (req: Request, res: Response) => {
       const hubsData = await DataManagementLib.getHubs(token);
       const hubsList = hubsData.data || [];
 
-      // 2. Iterate all hubs the user can access (multi-hub projects support)
-      if (hubsList.length === 0) {
+      // 2. Filter strictly by authorized hubs from config
+      const authorizedHubIds = (config.accessControl.authorizedHubs || []).map((h: any) => h.id);
+      const targetHubs = hubsList.filter((hub: any) => authorizedHubIds.includes(hub.id));
+
+      if (targetHubs.length === 0) {
         return res.status(404).json({
           data: null,
           error: "Hub not found",
-          message: "No hubs found for this user.",
+          message: "No authorized hubs found for this user.",
         });
       }
 
       // 3. Fetch projects from each authorized hub in parallel using Admin Lib
-      const projectsPromises = hubsList.map(async (hub: any) => {
+      const projectsPromises = targetHubs.map(async (hub: any) => {
         try {
           // Note: Hub ID format is "b.guid", Account ID is just "guid". We strip the prefix.
           const accountId = hub.id.replace(/^b\./, '');

@@ -12,7 +12,7 @@ router.post(
       .custom((value) => Array.isArray(value) || (value && typeof value === "object"))
       .withMessage("Body must be an object or array")
       .customSanitizer((value) => (Array.isArray(value) ? value : [value])),
-    body("*.id").notEmpty().withMessage("id is required"),
+    body("*.id").optional().isString(),
     body("*.title").optional().isString(),
     body("*.description").optional().isString(),
     body("*.status").optional().isString(),

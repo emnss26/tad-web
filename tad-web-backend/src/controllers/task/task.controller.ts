@@ -27,8 +27,8 @@ export async function createTask(req: Request, res: Response) {
     if (!saved.length) {
       return res.status(400).json({
         data: [],
-        error: "No rows with a valid id",
-        message: "Add at least one item with an id",
+        error: "No valid rows",
+        message: "Add at least one valid task payload.",
       });
     }
 
