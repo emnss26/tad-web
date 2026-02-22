@@ -586,7 +586,7 @@ const GrandTotalsRow = React.memo(function GrandTotalsRow({
 
 interface Database6DTableProps {
   data: IRowData[];
-  viewer: unknown;
+  viewer: Autodesk.Viewing.GuiViewer3D | null;
   groupedData?: Record<string, IRowData[]>;
   totalsByDiscipline: Record<string, Record<string, number>>;
   grandTotals: Record<string, number>;
@@ -595,8 +595,14 @@ interface Database6DTableProps {
   handleElementTypeChange: (row: IRowData, val: string) => void;
   disciplineOptions: string[];
   elementtype: string[];
-  isolateObjectsInViewer: (viewer: unknown, dbIds: string[]) => void;
-  hideObjectsInViewer: (viewer: unknown, dbIds: string[]) => void;
+  isolateObjectsInViewer: (
+    viewer: Autodesk.Viewing.GuiViewer3D | null,
+    dbIds: (number | string)[]
+  ) => void;
+  hideObjectsInViewer: (
+    viewer: Autodesk.Viewing.GuiViewer3D | null,
+    dbIds: (number | string)[]
+  ) => void;
   collapsedDisciplines: Record<string, boolean>;
   setCollapsedDisciplines: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   selectedRows: string[];
