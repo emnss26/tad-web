@@ -1,4 +1,4 @@
-import { Mail, MapPin, Phone, Send } from "lucide-react"
+import { Mail, MapPin, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -32,7 +32,7 @@ export default function ContactPage() {
               <div>
                 <h3 className="font-bold text-lg">Email Us</h3>
                 <p className="text-muted-foreground mb-2">For general inquiries and support</p>
-                <a href="mailto:contact@tadhub.com" className="text-primary font-medium hover:underline">
+                <a href="mailto:taller.arq.dgtl@gmail.com" className="text-primary font-medium hover:underline">
                   taller.arq.dgtl@gmail.com
                 </a>
               </div>

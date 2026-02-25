@@ -5,7 +5,7 @@ import { utils, writeFile } from "xlsx";
 
 // UI
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import { StatCard } from "@/components/users/stat-card";
 import { FileText, Clock, CheckCircle, Download, FilterX, ListTodo, GanttChart } from "lucide-react";
 
 // Components
-import { RfiStatusChart, RfiPriorityChart, RfiDisciplineChart } from "@/components/rfis/rfis-charts";
+import { RfiChartsCarousel } from "@/components/rfis/rfis-charts-carousel";
 import { RfisTable } from "@/components/rfis/rfis-table";
 import { RfisGanttChart } from "@/components/rfis/rfis-gantt-chart";
 
@@ -110,32 +110,13 @@ export default function ACCProjectRfisPage() {
         {/* Charts & Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* Left Column: Charts */}
-            <div className="space-y-6">
-                <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-base">Status</CardTitle></CardHeader>
-                    <CardContent className="h-[200px]">
-                        {loading ? <Skeleton className="h-full"/> : 
-                            <RfiStatusChart data={counts.status} onClick={(v: string) => setActiveFilter({key: 'status', value: v})} />
-                        }
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-base">Priority</CardTitle></CardHeader>
-                    <CardContent className="h-[200px]">
-                        {loading ? <Skeleton className="h-full"/> : 
-                            <RfiPriorityChart data={counts.priority} onClick={(v: string) => setActiveFilter({key: 'priority', value: v})} />
-                        }
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-base">Discipline</CardTitle></CardHeader>
-                    <CardContent className="h-[250px]">
-                        {loading ? <Skeleton className="h-full"/> : 
-                            <RfiDisciplineChart data={counts.discipline} onClick={(v: string) => setActiveFilter({key: 'discipline', value: v})} />
-                        }
-                    </CardContent>
-                </Card>
+            {/* Left Column: Charts Carousel */}
+            <div>
+                <RfiChartsCarousel
+                    counts={counts}
+                    loading={loading}
+                    onFilter={(key, value) => setActiveFilter({ key, value })}
+                />
             </div>
 
             {/* Right Column: Tabs (Table / Gantt) */}

@@ -29,6 +29,9 @@ declare module 'express-session' {
     token?: string;
     refreshToken?: string;
     expiresAt?: number;
+    userEmail?: string;
+    userName?: string;
+    isApprovedUser?: boolean;
   }
 }
 

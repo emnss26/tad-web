@@ -79,6 +79,15 @@ export default function HubLoginPage() {
                 </p>
               </div>
 
+              <div className="w-full text-left rounded-lg border border-border bg-muted/30 p-4 space-y-2 text-sm">
+                <p>
+                  If you are not part of this community please contact to the admin to purchase a monthly subscription.
+                </p>
+                <p>
+                  If you are already part of this community do the login with your Autodesk credentials.
+                </p>
+              </div>
+
               <Button 
                 size="lg" 
                 className="w-full h-14 text-lg font-medium shadow-lg hover:shadow-primary/25 transition-all"

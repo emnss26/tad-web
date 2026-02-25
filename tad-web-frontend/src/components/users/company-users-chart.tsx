@@ -8,6 +8,12 @@ interface CompanyUsersChartProps {
   onClick?: (company: string) => void
 }
 
+interface CompanyChartDatum {
+  name: string
+  fullName: string
+  users: number
+}
+
 const COLORS = [
   "hsl(221, 83%, 53%)", // Blue
   "hsl(142, 71%, 45%)", // Green
@@ -20,11 +26,11 @@ const COLORS = [
 ]
 
 export function CompanyUsersChart({ data, onClick }: CompanyUsersChartProps) {
-  const chartData = Object.entries(data)
+  const chartData: CompanyChartDatum[] = Object.entries(data)
     .map(([name, count]) => ({
       name: name.length > 20 ? name.substring(0, 20) + "..." : name,
       fullName: name,
-      users: Number(count), // Aseguramos que sea número
+      users: Math.max(0, Math.round(Number(count) || 0)),
     }))
     .sort((a, b) => b.users - a.users)
     .slice(0, 10)
@@ -34,6 +40,9 @@ export function CompanyUsersChart({ data, onClick }: CompanyUsersChartProps) {
       <div className="flex h-full items-center justify-center text-muted-foreground">No company data available</div>
     )
   }
+
+  const maxUsers = Math.max(...chartData.map((item) => item.users))
+  const domainMax = Math.max(1, maxUsers)
 
   return (
     <ChartContainer
@@ -46,16 +55,28 @@ export function CompanyUsersChart({ data, onClick }: CompanyUsersChartProps) {
       className="h-full w-full"
     >
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <XAxis type="number" />
+        <BarChart data={chartData} layout="vertical" margin={{ top: 8, right: 16, left: 16, bottom: 8 }}>
+          <XAxis
+            type="number"
+            domain={[0, domainMax]}
+            allowDecimals={false}
+            axisLine={false}
+            tickLine={false}
+            tickCount={Math.min(6, domainMax + 1)}
+            tickFormatter={(value) => Math.round(Number(value)).toString()}
+          />
           <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 12 }} />
           <ChartTooltip content={<ChartTooltipContent />} cursor={{ fill: "hsl(var(--muted))", opacity: 0.3 }} />
           <Bar
             dataKey="users"
             radius={[0, 4, 4, 0]}
             className="cursor-pointer"
-            // CORRECCIÓN AQUÍ: Tipamos data como any para acceder a fullName
-            onClick={(data: any) => onClick?.(data.fullName)}
+            onClick={(payload) => {
+              const datum = payload as Partial<CompanyChartDatum> | undefined
+              if (datum?.fullName) {
+                onClick?.(datum.fullName)
+              }
+            }}
           >
             {chartData.map((_, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

@@ -9,9 +9,11 @@ import HomePage from '@/pages/HomePage';
 import SolutionsPage from '@/pages/SolutionsPage';
 import AboutPage from '@/pages/AboutPage';
 import ContactPage from '@/pages/ContactPage';
+import PricingPage from '@/pages/PricingPage';
 
 // Pages - Auth
 import HubLoginPage from '@/pages/tad-hub/HubLoginPage';
+import HubNoAccessPage from '@/pages/tad-hub/HubNoAccessPage';
 
 // Pages - Hub
 import SelectPlatformPage from '@/pages/tad-hub/SelectPlatformPage';
@@ -53,6 +55,7 @@ function App() {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/solutions" element={<SolutionsPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
       </Route>
@@ -60,6 +63,7 @@ function App() {
       {/* 2. Login (Sin Layout) */}
       <Route path="/login" element={<div>Login General Placeholder</div>} />
       <Route path="/hub/login" element={<HubLoginPage />} />
+      <Route path="/hub/no-access" element={<HubNoAccessPage />} />
       
       {/* 3. El HUB (App Interna) */}
       <Route element={<HubLayout />}>

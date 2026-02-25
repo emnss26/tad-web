@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { Linkedin, Instagram, Mail, Box } from "lucide-react"
+import { Linkedin, Mail, Box } from "lucide-react"
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -19,9 +19,8 @@ export function Footer() {
               Empowering BIM & VDC workflows with cutting-edge technology, automation, and real-time cloud integration.
             </p>
             <div className="flex gap-4 pt-2">
-              <SocialIcon href="#" icon={<Linkedin size={20} />} />
-              <SocialIcon href="#" icon={<Instagram size={20} />} />
-              <SocialIcon href="mailto:contact@tadhub.com" icon={<Mail size={20} />} />
+              <SocialIcon href="https://www.linkedin.com/in/taller-de-arquitectura-digital-363726185/" icon={<Linkedin size={20} />} />
+              <SocialIcon href="mailto:taller.arq.dgtl@gmail.com" icon={<Mail size={20} />} />
             </div>
           </div>
 
@@ -31,7 +30,6 @@ export function Footer() {
             <ul className="space-y-3 text-sm">
               <li><FooterLink to="/solutions">Solutions</FooterLink></li>
               <li><FooterLink to="/pricing">Pricing</FooterLink></li>
-              <li><FooterLink to="/docs">Documentation</FooterLink></li>
             </ul>
           </div>
 
@@ -41,7 +39,6 @@ export function Footer() {
             <ul className="space-y-3 text-sm">
               <li><FooterLink to="/about">About Us</FooterLink></li>
               <li><FooterLink to="/contact">Contact</FooterLink></li>
-              <li><FooterLink to="/privacy">Privacy Policy</FooterLink></li>
             </ul>
           </div>
         </div>

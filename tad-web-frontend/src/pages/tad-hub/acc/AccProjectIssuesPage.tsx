@@ -128,15 +128,17 @@ export default function ACCProjectIssuesPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Chart Column (1/3 width) */}
         <div className="lg:col-span-1">
-            <Card className="h-full">
+            <Card className="h-full flex flex-col">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5"/> By Status</CardTitle>
                     <CardDescription>Click to filter table</CardDescription>
                 </CardHeader>
-                <CardContent className="h-[300px]">
-                    {loading ? <Skeleton className="h-full w-full"/> : 
+                <CardContent className="flex-1 min-h-[300px] p-0 flex items-center justify-center">
+                    {loading ? (
+                        <Skeleton className="h-full w-full" />
+                    ) : (
                         <IssueStatusChart data={statusCounts} selectedStatus={selectedStatus} onSliceClick={setSelectedStatus} />
-                    }
+                    )}
                 </CardContent>
             </Card>
         </div>

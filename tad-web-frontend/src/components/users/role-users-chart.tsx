@@ -2,11 +2,10 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
 
-// CORRECCIÓN AQUÍ: Agregamos [key: string]: any para satisfacer a Recharts
 interface RoleData {
   name: string
   value: number
-  [key: string]: any 
+  [key: string]: string | number | undefined
 }
 
 interface RoleUsersChartProps {
@@ -26,9 +25,11 @@ const COLORS = [
 ]
 
 export function RoleUsersChart({ data, onClick }: RoleUsersChartProps) {
-  // Aseguramos que los valores sean números para evitar errores de ordenamiento
   const chartData = data
-    .map(d => ({ ...d, value: Number(d.value) }))
+    .map((item) => ({
+      ...item,
+      value: Math.max(0, Math.round(Number(item.value) || 0)),
+    }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 8)
 
@@ -50,8 +51,12 @@ export function RoleUsersChart({ data, onClick }: RoleUsersChartProps) {
           paddingAngle={2}
           dataKey="value"
           nameKey="name"
-          // TypeScript a veces se queja aquí, 'any' es seguro en este contexto de evento
-          onClick={(data: any) => onClick?.(data.name)}
+          onClick={(payload) => {
+            const roleName = (payload as { name?: string } | undefined)?.name
+            if (roleName) {
+              onClick?.(roleName)
+            }
+          }}
           className="cursor-pointer outline-none"
         >
           {chartData.map((_, index) => (
@@ -66,13 +71,16 @@ export function RoleUsersChart({ data, onClick }: RoleUsersChartProps) {
         <Tooltip
           content={({ active, payload }) => {
             if (active && payload && payload.length) {
-              const data = payload[0].payload
-              const percentage = total > 0 ? ((data.value / total) * 100).toFixed(1) : 0
+              const rawPayload = payload[0]?.payload as Partial<RoleData> | undefined
+              const roleName = rawPayload?.name || "Unknown"
+              const userCount = Math.max(0, Math.round(Number(rawPayload?.value) || 0))
+              const percentage = total > 0 ? Math.round((userCount / total) * 100) : 0
+
               return (
                 <div className="rounded-lg border bg-background p-2 shadow-sm">
-                  <div className="font-medium">{data.name}</div>
+                  <div className="font-medium">{roleName}</div>
                   <div className="text-sm text-muted-foreground">
-                    {data.value} users ({percentage}%)
+                    {userCount} users ({percentage}%)
                   </div>
                 </div>
               )

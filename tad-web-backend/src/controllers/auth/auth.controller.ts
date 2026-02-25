@@ -9,6 +9,17 @@ interface ThreeLeggedQuery {
   code?: string;
 }
 
+interface APSUserProfile {
+  emailId?: string;
+  email?: string;
+  displayName?: string;
+  userName?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+const normalizeEmail = (email?: string): string => (email || '').trim().toLowerCase();
+
 export const getThreeLeggedAuth: RequestHandler<any, any, any, ThreeLeggedQuery> = async (req, res, next) => {
     const code = req.query.code;
     
@@ -19,9 +30,35 @@ export const getThreeLeggedAuth: RequestHandler<any, any, any, ThreeLeggedQuery>
 
     try {
         const token = await getAPSThreeLeggedToken(code);
+        const { data: profile } = await axios.get<APSUserProfile>(
+            `${config.aps.baseUrl}/userprofile/v1/users/@me`,
+            {
+                headers: { Authorization: `Bearer ${token}` }
+            }
+        );
+        const approvedEmailSet = new Set(
+            (config.accessControl.approvedEmails || [])
+                .map((entry: { email?: string }) => normalizeEmail(entry.email))
+                .filter(Boolean)
+        );
+        const userEmail = normalizeEmail(profile.emailId || profile.email);
+        const isApprovedUser = userEmail !== '' && approvedEmailSet.has(userEmail);
+
+        if (!isApprovedUser) {
+            req.session.destroy((destroyError) => {
+                if (destroyError) {
+                    console.error('Session destroy error for non-approved user:', destroyError);
+                }
+                return res.redirect(`${config.urls.frontend}/hub/no-access`);
+            });
+            return;
+        }
 
         //  Store token in Server-Side Session
         req.session.token = token;
+        req.session.userEmail = userEmail;
+        req.session.userName = profile.displayName || profile.userName || `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
+        req.session.isApprovedUser = true;
 
         // Force save to avoid race conditions with the redirect
         req.session.save((err) => {
