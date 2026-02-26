@@ -83,11 +83,14 @@ export function LodCheckerTable({ discipline, rows, onRowsChange }: LodCheckerTa
       item.row === row
         ? {
             ...item,
-            geometriaCompleta: {
-              y: status === "y",
-              n: status === "n",
-              na: status === "na",
-            },
+            geometriaCompleta:
+              item.geometriaCompleta[status]
+                ? createGeometryStatus(null)
+                : {
+                    y: status === "y",
+                    n: status === "n",
+                    na: status === "na",
+                  },
           }
         : item
     );
@@ -100,11 +103,14 @@ export function LodCheckerTable({ discipline, rows, onRowsChange }: LodCheckerTa
       item.row === row
         ? {
             ...item,
-            lodCompletion: {
-              y: status === "y",
-              n: status === "n",
-              na: status === "na",
-            },
+            lodCompletion:
+              item.lodCompletion[status]
+                ? createGeometryStatus(null)
+                : {
+                    y: status === "y",
+                    n: status === "n",
+                    na: status === "na",
+                  },
           }
         : item
     );
@@ -142,14 +148,10 @@ export function LodCheckerTable({ discipline, rows, onRowsChange }: LodCheckerTa
     setTempLod("");
   };
 
-  const complianceStats = useMemo(() => {
-    const total = data.length;
-    const completed = data.filter((item) => item.geometriaCompleta.y && item.lodCompletion.y).length;
-    return total ? Math.round((completed / total) * 100) : 0;
-  }, [data]);
-
   const geometryStats = useMemo(() => {
-    const validRows = data.filter((item) => !item.geometriaCompleta.na);
+    const validRows = data.filter(
+      (item) => !item.geometriaCompleta.na && (item.geometriaCompleta.y || item.geometriaCompleta.n)
+    );
     const yesRows = validRows.filter((item) => item.geometriaCompleta.y).length;
     return {
       total: validRows.length,
@@ -159,7 +161,7 @@ export function LodCheckerTable({ discipline, rows, onRowsChange }: LodCheckerTa
   }, [data]);
 
   const lodStats = useMemo(() => {
-    const validRows = data.filter((item) => !item.lodCompletion.na);
+    const validRows = data.filter((item) => !item.lodCompletion.na && (item.lodCompletion.y || item.lodCompletion.n));
     const yesRows = validRows.filter((item) => item.lodCompletion.y).length;
     return {
       total: validRows.length,
@@ -168,8 +170,12 @@ export function LodCheckerTable({ discipline, rows, onRowsChange }: LodCheckerTa
     };
   }, [data]);
 
+  const complianceStats = useMemo(() => {
+    return Math.round((geometryStats.percentage + lodStats.percentage) / 2);
+  }, [geometryStats.percentage, lodStats.percentage]);
+
   return (
-    <div className="mx-auto w-full max-w-4xl bg-white p-2">
+    <div className="w-full bg-white p-2">
       <Card className="mb-2 bg-white">
         <CardContent className="px-2 py-1">
           <div className="flex items-center justify-between">

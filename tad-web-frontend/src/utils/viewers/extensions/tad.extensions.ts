@@ -179,7 +179,6 @@ export class CategorySelectionExtension extends Autodesk.Viewing.Extension {
                 detail: { dbId, properties: propertiesMap },
                 
               });
-              console.log("Detail", event)
               window.dispatchEvent(event);
             },
             (err: any) => console.error(err)

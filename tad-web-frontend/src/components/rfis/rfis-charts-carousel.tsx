@@ -43,7 +43,7 @@ export function RfiChartsCarousel({ counts, loading, onFilter, className }: RfiC
       {
         key: "discipline" as const,
         title: "Discipline",
-        description: "Bar chart by discipline",
+        description: "Pie chart by discipline",
         render: <RfiDisciplineChart data={counts.discipline} onClick={(value) => onFilter("discipline", value)} />,
       },
     ],
@@ -79,8 +79,14 @@ export function RfiChartsCarousel({ counts, loading, onFilter, className }: RfiC
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 min-h-[320px] p-0">
-        {loading ? <div className="h-full p-4"><Skeleton className="h-full w-full" /></div> : activeSlide.render}
+      <CardContent className="flex-1 min-h-0 p-0 overflow-hidden">
+        {loading ? (
+          <div className="h-full p-4">
+            <Skeleton className="h-full w-full" />
+          </div>
+        ) : (
+          <div className="h-full w-full">{activeSlide.render}</div>
+        )}
       </CardContent>
 
       <div className="flex items-center justify-center gap-2 px-6 pb-4">

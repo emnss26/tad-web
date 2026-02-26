@@ -146,7 +146,6 @@ export const data5Dviewer = async (options: IViewer5DOptions) => {
     let documentId = "";
     try {
       documentId = toViewerDocumentId(federatedModel);
-      console.log("5D Viewer documentId:", documentId);
     } catch (e) {
       console.error("Invalid federatedModel URN:", e);
       return;

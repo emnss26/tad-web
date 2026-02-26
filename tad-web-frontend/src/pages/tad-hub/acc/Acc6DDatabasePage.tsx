@@ -64,7 +64,6 @@ import React, {
     "Tell me the construction start and finish dates of elements in the discipline concrete structure",
   ];
   
-  // Interface idÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ntica a la usada en ProjectPage
   interface IModelFile {
     id: string;
     name: string;
@@ -87,10 +86,8 @@ import React, {
     const [models, setModels] = useState<IModelFile[]>([]);
     const [loadingModels, setLoadingModels] = useState(false);
   
-    // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Guardamos el modelo completo (id + urn) para construir rutas API correctas
     const [selectedModel, setSelectedModel] = useState<IModelFile | null>(null);
   
-    // Mantengo selectedUrn porque el resto del mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³dulo lo usa (viewer)
     const selectedUrn = selectedModel?.urn ?? null;
     const selectedModelId = selectedModel?.id ?? null;
   
@@ -142,19 +139,16 @@ import React, {
       reorderRowsByDisciplineAndGroup
     );
   
-    // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ API base: respeta /api y agrega /models/:modelId
     const apiBase = useMemo(() => {
       if (!accountId || !projectId || !selectedModelId) return null;
       return `${BACKEND_URL}/api/modeldata/${accountId}/${projectId}/models/${selectedModelId}/data`;
     }, [accountId, projectId, selectedModelId]);
   
-    // Reset bÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡sico si cambias de proyecto/cuenta (evita ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“estado viejoÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â)
     useEffect(() => {
       setModels([]);
       setSelectedModel(null);
       viewerInitialized.current = false;
   
-      // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ limpia tabla/selecciones tambiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©n
       setData([defaultRow]);
       setSelectedRows([]);
       setSelectionCount(0);
@@ -184,7 +178,6 @@ import React, {
       handleFetchModels();
     };
   
-    // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Limpia tabla y selecciona modelo (id + urn)
     const handleSelectModel = (file: IModelFile) => {
       setShowViewer(true);
   
@@ -205,7 +198,6 @@ import React, {
   
       viewerInitialized.current = false;
   
-      // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Limpia tabla/selecciones al cambiar modelo (flujo requerido)
       setData([defaultRow]);
       setSelectedRows([]);
       setSelectionCount(0);
@@ -221,16 +213,13 @@ import React, {
       }, 50);
     };
   
-    // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Auto-pull: al seleccionar modelo, trae la data del modelo correcto
     useEffect(() => {
       if (!apiBase) return;
-      // No alert aquÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­: solo carga
       (async () => {
         setLoading(true);
         try {
           const response = await fetch(apiBase, { credentials: "include" });
           if (!response.ok) {
-            // si no hay data aÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºn, deja defaultRow
             setData([defaultRow]);
             return;
           }
@@ -299,7 +288,6 @@ import React, {
       };
   
       const t = setTimeout(() => {
-        console.log("Initializing 6D Viewer with URN:", selectedUrn);
   
         data5D6Dviewer({
           federatedModel: selectedUrn,
@@ -527,7 +515,6 @@ import React, {
       );
     };
   
-    // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Submit: usa apiBase y NO manda defaultRow (dbId vacÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­o) para evitar 400 validator
     const handleSubmit = async () => {
       if (!apiBase) return alert("Select a model first");
   
@@ -572,7 +559,6 @@ import React, {
       }
     };
   
-    // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Pull: usa apiBase con ?discipline=... y credentials
     const handlePullData = async (discipline: string | null = null) => {
       if (!apiBase) return alert("Select a model first");
   
@@ -624,7 +610,6 @@ import React, {
           contextData: null,
         };
   
-        // (no lo tocamos para no afectar IA; aunque ahorita no lo usarÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡n)
         const res = await fetch(`${BACKEND_URL}/ai-modeldata`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -767,10 +752,14 @@ import React, {
         <div className="flex flex-1 overflow-hidden">
           <div className="flex-1 p-6 overflow-auto">
             {/* Header Area with Model Selection */}
-            <div className="mb-6 flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Model Database 6D{selectedModel?.name ? ` - ${selectedModel.name}` : ""}
-              </h1>
+            <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h1 className="text-xl font-semibold text-slate-900">6D Data</h1>
+                <p className="text-sm text-slate-500">
+                  Manage sustainable data 6D.{selectedModel?.name ? ` Active model: ${selectedModel.name}.` : ""}
+                </p>
+              </div>
   
               {/* MODEL SELECTION DIALOG */}
               <Dialog
@@ -813,7 +802,7 @@ import React, {
                           {models.map((file) => (
                             <div
                               key={file.id}
-                              onClick={() => handleSelectModel(file)} // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ pasa modelo completo
+                              onClick={() => handleSelectModel(file)}
                               className="flex items-center justify-between p-3 rounded-md border hover:bg-accent cursor-pointer transition-colors group"
                             >
                               <div className="flex items-center gap-3">
@@ -842,8 +831,9 @@ import React, {
                   )}
                 </DialogContent>
               </Dialog>
+              </div>
             </div>
-  
+
             <div className="mb-6">
               <ControlPanel
                 viewer={window.data5Dviewer}
@@ -857,8 +847,8 @@ import React, {
                 showAllObjects={showAllObjects}
                 handleAddRow={handleAddRow}
                 handleRemoveRow={() => handleRemoveRow(-1)}
-                handleSubmit={handleSubmit} // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ ya usa modelId
-                handlePullData={handlePullData} // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ ya usa modelId
+                handleSubmit={handleSubmit}
+                handlePullData={handlePullData}
                 disciplineOptions={disciplineOptions}
                 selectedDisciplineForColor={selectedDisciplineForColor}
                 setSelectedDisciplineForColor={setSelectedDisciplineForColor}
@@ -1005,5 +995,3 @@ import React, {
   };
   
   export default React.memo(Acc6DDatabasePage);
-
-

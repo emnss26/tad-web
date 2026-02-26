@@ -10,6 +10,7 @@ import SolutionsPage from '@/pages/SolutionsPage';
 import AboutPage from '@/pages/AboutPage';
 import ContactPage from '@/pages/ContactPage';
 import PricingPage from '@/pages/PricingPage';
+import McpSolutionsPage from '@/pages/McpSolutionsPage';
 
 // Pages - Auth
 import HubLoginPage from '@/pages/tad-hub/HubLoginPage';
@@ -32,6 +33,8 @@ import AccProjectPlansPage from '@/pages/tad-hub/acc/AccProjectPlansPage';
 import AccTaskManagementPage from '@/pages/tad-hub/acc/AccTaskManagementPage';
 import AccLodCheckerPage from '@/pages/tad-hub/acc/AccLodCheckerPage';
 import AccVrPage from '@/pages/tad-hub/acc/AccVrPage';
+import AccAecParameterCheckerPage from '@/pages/tad-hub/acc/AccAecParameterCheckerPage';
+import AccAecWbsPlannerPage from '@/pages/tad-hub/acc/AccAecWbsPlannerPage';
 
 // BIM360
 import Bim360ProjectsPage from '@/pages/tad-hub/bim360/Bim360ProjectsPage';
@@ -46,6 +49,8 @@ import Bim360ProjectPlansPage from './pages/tad-hub/bim360/Bim360ProjectPlansPag
 import Bim360TaskManagementPage from './pages/tad-hub/bim360/Bim360TaskManagementPage';
 import Bim360LodCheckerPage from './pages/tad-hub/bim360/Bim360LodCheckerPage';
 import Bim360VrPage from './pages/tad-hub/bim360/Bim360VrPage';
+import Bim360AecParameterCheckerPage from './pages/tad-hub/bim360/Bim360AecParameterCheckerPage';
+import Bim360AecWbsPlannerPage from './pages/tad-hub/bim360/Bim360AecWbsPlannerPage';
 
 
 function App() {
@@ -55,6 +60,8 @@ function App() {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/solutions" element={<SolutionsPage />} />
+        <Route path="/mcp-solutions" element={<McpSolutionsPage />} />
+        <Route path="/mcp" element={<McpSolutionsPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
@@ -90,6 +97,8 @@ function App() {
         <Route path="/bim360projects/:accountId/:projectId/plans" element={<Bim360ProjectPlansPage />} />
         <Route path="/bim360projects/:accountId/:projectId/task-manager" element={<Bim360TaskManagementPage />} />
         <Route path="/bim360projects/:accountId/:projectId/lod-checker" element={<Bim360LodCheckerPage />} />
+        <Route path="/bim360projects/:accountId/:projectId/aec-parameter-checker" element={<Bim360AecParameterCheckerPage />} />
+        <Route path="/bim360projects/:accountId/:projectId/aec-wbs-planner" element={<Bim360AecWbsPlannerPage />} />
         <Route path="/bim360projects/:accountId/:projectId/vr" element={<Bim360VrPage />} />
 
 
@@ -105,6 +114,8 @@ function App() {
         <Route path="/accprojects/:accountId/:projectId/plans" element={<AccProjectPlansPage />} />
         <Route path="/accprojects/:accountId/:projectId/task-manager" element={<AccTaskManagementPage />} />
         <Route path="/accprojects/:accountId/:projectId/lod-checker" element={<AccLodCheckerPage />} />
+        <Route path="/accprojects/:accountId/:projectId/aec-parameter-checker" element={<AccAecParameterCheckerPage />} />
+        <Route path="/accprojects/:accountId/:projectId/aec-wbs-planner" element={<AccAecWbsPlannerPage />} />
         <Route path="/accprojects/:accountId/:projectId/vr" element={<AccVrPage />} />
         
       

@@ -137,7 +137,7 @@ export function TaskManagementForm({
             onValueChange={(value) => handleChange("assignedTo", value)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecciona un usuario" />
+              <SelectValue placeholder="Select a user" />
             </SelectTrigger>
             <SelectContent>
               {orderedUsers.map((user) => (
@@ -156,7 +156,7 @@ export function TaskManagementForm({
             onValueChange={(value) => handleChange("status", value)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecciona estado" />
+              <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
               {TASK_STATUS_OPTIONS.map((status) => (

@@ -1,11 +1,22 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import {
-  Home, LayoutGrid, Users, ClipboardList, Mail, FileText, Layers,
-  DollarSign, Wrench, FileCode, ClipboardCheck, Clock, HardDrive,
-  ChevronLeft, ChevronRight, Building
+  Home,
+  LayoutGrid,
+  Users,
+  ClipboardList,
+  Mail,
+  FileText,
+  Layers,
+  DollarSign,
+  FileCode,
+  ClipboardCheck,
+  Clock,
+  HardDrive,
+  Building,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -14,134 +25,161 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
+type MatchMode = "exact" | "prefix";
+
+interface SidebarItem {
+  icon: ReactNode;
+  label: string;
+  path: string;
+  match?: MatchMode;
+}
+
+const normalizePath = (path: string) => {
+  const cleaned = String(path || "").replace(/\/+$/, "");
+  return cleaned || "/";
+};
+
 export function HubSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
   const { accountId, projectId } = useParams();
   const location = useLocation();
-
-  // 1. Detectar Plataforma
   const isAcc = location.pathname.includes("/accprojects");
   const platformPrefix = isAcc ? "/accprojects" : "/bim360projects";
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
-  // 2. Definir Menús Específicos
-  
-  // Menú Común (Base)
-  const commonItems = [
-    { icon: <LayoutGrid className="h-5 w-5" />, label: "Dashboard", path: `${platformPrefix}/${accountId}/${projectId}` },
+  const commonItems: SidebarItem[] = [
+    {
+      icon: <LayoutGrid className="h-5 w-5" />,
+      label: "Dashboard",
+      path: `${platformPrefix}/${accountId}/${projectId}`,
+      match: "exact",
+    },
     { icon: <Users className="h-5 w-5" />, label: "Users", path: `${platformPrefix}/${accountId}/${projectId}/users` },
     { icon: <ClipboardList className="h-5 w-5" />, label: "Issues", path: `${platformPrefix}/${accountId}/${projectId}/issues` },
     { icon: <Mail className="h-5 w-5" />, label: "RFIs", path: `${platformPrefix}/${accountId}/${projectId}/rfis` },
   ];
 
-  // Items exclusivos de ACC
-  const accItems = [
+  const accItems: SidebarItem[] = [
     { icon: <FileText className="h-5 w-5" />, label: "Submittals", path: `${platformPrefix}/${accountId}/${projectId}/submittals` },
     { icon: <Layers className="h-5 w-5" />, label: "4D Data", path: `${platformPrefix}/${accountId}/${projectId}/acc4ddata` },
     { icon: <DollarSign className="h-5 w-5" />, label: "5D Data", path: `${platformPrefix}/${accountId}/${projectId}/acc5ddata` },
     { icon: <Layers className="h-5 w-5" />, label: "6D Data", path: `${platformPrefix}/${accountId}/${projectId}/acc6ddata` },
   ];
 
-  // Items exclusivos de BIM360 (Si hubiera, por ahora solo el base)
-  const bim360Items: any[] = [
+  const bim360Items: SidebarItem[] = [
     { icon: <Layers className="h-5 w-5" />, label: "4D Data", path: `${platformPrefix}/${accountId}/${projectId}/b3604ddata` },
     { icon: <DollarSign className="h-5 w-5" />, label: "5D Data", path: `${platformPrefix}/${accountId}/${projectId}/b3605ddata` },
     { icon: <Layers className="h-5 w-5" />, label: "6D Data", path: `${platformPrefix}/${accountId}/${projectId}/b3606ddata` },
-  
   ];
 
-  // 3. Fusionar Menú según plataforma
-  const menuItems = [
-      // Link de retorno a la lista de proyectos
-      { icon: <Home className="h-5 w-5" />, label: "All Projects", path: platformPrefix }, 
-      
-      ...(isAcc ? [...commonItems, ...accItems] : [...commonItems, ...bim360Items]),
-  
-      { icon: <FileCode className="h-5 w-5" />, label: "Plans", path: `${platformPrefix}/${accountId}/${projectId}/plans` },
-      { icon: <ClipboardCheck className="h-5 w-5" />, label: "Tasks", path: `${platformPrefix}/${accountId}/${projectId}/task-manager` },
-      { icon: <HardDrive className="h-5 w-5" />, label: "LOD Checker", path: `${platformPrefix}/${accountId}/${projectId}/lod-checker` },
-      { icon: <Clock className="h-5 w-5" />, label: "VR", path: `${platformPrefix}/${accountId}/${projectId}/vr` },
+  const menuItems: SidebarItem[] = [
+    { icon: <Home className="h-5 w-5" />, label: "All Projects", path: platformPrefix, match: "exact" },
+    ...(isAcc ? [...commonItems, ...accItems] : [...commonItems, ...bim360Items]),
+    { icon: <FileCode className="h-5 w-5" />, label: "Plans", path: `${platformPrefix}/${accountId}/${projectId}/plans` },
+    { icon: <ClipboardCheck className="h-5 w-5" />, label: "Tasks", path: `${platformPrefix}/${accountId}/${projectId}/task-manager` },
+    { icon: <HardDrive className="h-5 w-5" />, label: "LOD Checker", path: `${platformPrefix}/${accountId}/${projectId}/lod-checker` },
+    {
+      icon: <Building className="h-5 w-5" />,
+      label: "Parameters Checker",
+      path: `${platformPrefix}/${accountId}/${projectId}/aec-parameter-checker`,
+    },
+    {
+      icon: <Layers className="h-5 w-5" />,
+      label: "Project 4D WBS Planner",
+      path: `${platformPrefix}/${accountId}/${projectId}/aec-wbs-planner`,
+    },
+    { icon: <Clock className="h-5 w-5" />, label: "VR", path: `${platformPrefix}/${accountId}/${projectId}/vr` },
   ];
+
+  const isItemActive = (item: SidebarItem) => {
+    const currentPath = normalizePath(location.pathname);
+    const itemPath = normalizePath(item.path);
+    if ((item.match || "prefix") === "exact") {
+      return currentPath === itemPath;
+    }
+    return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`);
+  };
 
   return (
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
           "relative flex flex-col h-full bg-card text-card-foreground transition-all duration-300 ease-in-out",
-          collapsed ? "w-16" : "w-64"
+          isCollapsed ? "w-16" : "w-64"
         )}
       >
-        {/* Toggle Button */}
-        <div className="flex items-center justify-end p-4 h-14 border-b">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCollapsed(!collapsed)}
-            className="h-8 w-8 ml-auto hover:bg-muted"
-          >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </Button>
+        <div className="flex items-center p-3 h-14 border-b">
+          <div className={cn("flex items-center gap-2", isCollapsed ? "justify-center w-full" : "")}>
+            <span
+              className={cn(
+                "inline-flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold uppercase",
+                isAcc ? "bg-blue-100 text-blue-700" : "bg-indigo-100 text-indigo-700"
+              )}
+            >
+              {isAcc ? "AB" : "360"}
+            </span>
+            {!isCollapsed ? (
+              <span className="text-xs font-semibold text-slate-600">{isAcc ? "Autodesk Construction Cloud" : "BIM 360"}</span>
+            ) : null}
+          </div>
         </div>
 
-        {/* Platform Badge (Visual Helper) */}
-        {!collapsed && (
-            <div className="px-4 py-2">
-                <div className={cn(
-                    "text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full text-center",
-                    isAcc ? "bg-blue-100 text-blue-700" : "bg-indigo-100 text-indigo-700"
-                )}>
-                    {isAcc ? "Autodesk Build" : "BIM 360"}
-                </div>
-            </div>
-        )}
-
-        {/* Menu Items */}
-        <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1 scrollbar-hide">
-          {menuItems.map((item, index) => {
-            // Lógica exacta de active (match exacto o subrutas)
-            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
-            
+        <nav className={cn("flex-1 overflow-y-auto py-4 space-y-1 scrollbar-hide", isCollapsed ? "px-2" : "px-3")}>
+          {menuItems.map((item) => {
+            const isActive = isItemActive(item);
             return (
-              <Tooltip key={index}>
+              <Tooltip key={item.path}>
                 <TooltipTrigger asChild>
                   <Link
                     to={item.path}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 text-sm font-medium group relative overflow-hidden",
+                      "flex items-center gap-3 px-2 py-2 rounded-md transition-all duration-200 text-sm font-medium group relative overflow-hidden",
+                      isCollapsed ? "justify-center" : "justify-start",
                       isActive
                         ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                      collapsed && "justify-center px-2"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     )}
                   >
-                    {/* Barra indicadora activa */}
-                    {isActive && (
-                        <span className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
-                    )}
-                    
+                    {isActive ? (
+                      <span className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
+                    ) : null}
                     <span className={cn(isActive ? "text-primary" : "group-hover:scale-110 transition-transform")}>
-                        {item.icon}
+                      {item.icon}
                     </span>
-                    
-                    {!collapsed && <span className="truncate">{item.label}</span>}
+                    {!isCollapsed ? <span className="truncate">{item.label}</span> : null}
                   </Link>
                 </TooltipTrigger>
-                {collapsed && (
+                {isCollapsed ? (
                   <TooltipContent side="right" className="bg-popover text-popover-foreground ml-2 font-medium">
                     {item.label}
                   </TooltipContent>
-                )}
+                ) : null}
               </Tooltip>
             );
           })}
         </nav>
 
-        {/* Footer Sidebar */}
-        {!collapsed && (
-          <div className="p-4 border-t bg-muted/10 text-xs text-muted-foreground text-center">
-            <p className="font-semibold mb-1">TAD HUB v2.0</p>
-            <Link to="/contact" className="hover:text-primary transition-colors underline">Support</Link>
-          </div>
-        )}
+        <div className={cn("border-t py-2", isCollapsed ? "px-2" : "px-3")}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => setIsCollapsed((prev) => !prev)}
+                className={cn(
+                  "w-full rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 flex items-center",
+                  isCollapsed ? "justify-center" : "justify-end"
+                )}
+                aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+              </button>
+            </TooltipTrigger>
+            {isCollapsed ? (
+              <TooltipContent side="right" className="bg-popover text-popover-foreground ml-2 font-medium">
+                Expand sidebar
+              </TooltipContent>
+            ) : null}
+          </Tooltip>
+        </div>
       </aside>
     </TooltipProvider>
   );

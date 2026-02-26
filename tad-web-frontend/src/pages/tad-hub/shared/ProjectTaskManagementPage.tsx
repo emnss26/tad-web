@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { PlusCircle, LayoutGrid, BarChart2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ModulePageHeader from "@/components/hub/ModulePageHeader";
 import {
   Dialog,
   DialogContent,
@@ -120,15 +121,17 @@ export default function ProjectTaskManagementPage({ platform }: ProjectTaskManag
   return (
     <div className="flex min-h-full">
       <main className="w-full min-w-0 bg-white p-2 px-4">
-        <h1 className="mt-2 text-right text-xl">TEAM TASK MANAGEMENT MODULE</h1>
-        <hr className="my-4 border-t border-gray-300" />
-
-        <div className="mb-6 flex items-center justify-between">
-          <Button onClick={() => setIsFormOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Task
-          </Button>
-        </div>
+        <ModulePageHeader
+          title="Task Management"
+          description={`Manage project tasks, assignments, and scheduling views (${platform.toUpperCase()}).`}
+          actions={
+            <Button onClick={() => setIsFormOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Task
+            </Button>
+          }
+          className="mt-2 mb-6"
+        />
 
         {loading && <p className="text-sm text-muted-foreground">Loading tasks...</p>}
 

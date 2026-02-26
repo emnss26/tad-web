@@ -13,6 +13,15 @@ type BatchWriteResult = {
   processed: number;
 };
 
+const isBatchWriteAccessDenied = (error: any): boolean => {
+  const name = String(error?.name || error?.__type || "");
+  const message = String(error?.message || "");
+  return (
+    (name.includes("AccessDenied") || message.toLowerCase().includes("not authorized")) &&
+    message.includes("BatchWriteItem")
+  );
+};
+
 export const DynamoLib = {
   saveItem: async (tableName: string, item: any) => {
     await dynamoDbClient.send(
@@ -64,6 +73,47 @@ export const DynamoLib = {
     } while (ExclusiveStartKey);
 
     return out;
+  },
+
+  queryByPKBeginsWithSK: async ({
+    tableName,
+    pkName,
+    pkValue,
+    skName,
+    skBeginsWith,
+    scanIndexForward = true,
+    limit,
+  }: {
+    tableName: string;
+    pkName: string;
+    pkValue: string;
+    skName: string;
+    skBeginsWith: string;
+    scanIndexForward?: boolean;
+    limit?: number;
+  }) => {
+    const out: any[] = [];
+    let ExclusiveStartKey: any = undefined;
+
+    do {
+      const res = await dynamoDbClient.send(
+        new QueryCommand({
+          TableName: tableName,
+          KeyConditionExpression: "#pk = :pk AND begins_with(#sk, :sk)",
+          ExpressionAttributeNames: { "#pk": pkName, "#sk": skName },
+          ExpressionAttributeValues: { ":pk": pkValue, ":sk": skBeginsWith },
+          ExclusiveStartKey,
+          ScanIndexForward: scanIndexForward,
+          Limit: limit,
+        })
+      );
+
+      out.push(...(res.Items || []));
+      if (limit && out.length >= limit) break;
+      ExclusiveStartKey = res.LastEvaluatedKey;
+    } while (ExclusiveStartKey);
+
+    return limit ? out.slice(0, limit) : out;
   },
 
   // ✅ Query por GSI con begins_with (paginado)
@@ -187,26 +237,46 @@ export const DynamoLib = {
     let processed = 0;
 
     for (const chunk of chunks) {
-      let requestItems: any = {
-        [tableName]: chunk.map((Item) => ({ PutRequest: { Item } })),
-      };
+      let pending: any[] = chunk.map((Item) => ({ PutRequest: { Item } }));
+      let completedByFallback = false;
 
-      // processed "optimista" (si hay unprocessed, no cuenta como procesado final)
-      processed += chunk.length;
+      for (let attempt = 0; attempt < maxRetries && pending.length > 0; attempt++) {
+        try {
+          const res = await dynamoDbClient.send(
+            new BatchWriteCommand({ RequestItems: { [tableName]: pending } })
+          );
 
-      for (let attempt = 0; attempt < maxRetries; attempt++) {
-        const res = await dynamoDbClient.send(
-          new BatchWriteCommand({ RequestItems: requestItems })
-        );
+          const unprocessed = res.UnprocessedItems?.[tableName] || [];
+          const successCount = pending.length - unprocessed.length;
+          processed += successCount;
+          pending = unprocessed;
 
-        const unprocessed = res.UnprocessedItems?.[tableName] || [];
-        if (!unprocessed.length) break;
+          if (pending.length > 0 && attempt < maxRetries - 1) {
+            await new Promise((r) => setTimeout(r, backoffMs * (attempt + 1)));
+          }
+        } catch (error: any) {
+          if (!isBatchWriteAccessDenied(error)) throw error;
 
-        totalUnprocessed += unprocessed.length;
-        requestItems = { [tableName]: unprocessed };
+          for (const req of pending) {
+            const item = req?.PutRequest?.Item;
+            try {
+              await dynamoDbClient.send(
+                new PutCommand({ TableName: tableName, Item: item })
+              );
+              processed += 1;
+            } catch {
+              totalUnprocessed += 1;
+            }
+          }
 
-        // backoff simple
-        await new Promise((r) => setTimeout(r, backoffMs * (attempt + 1)));
+          pending = [];
+          completedByFallback = true;
+          break;
+        }
+      }
+
+      if (!completedByFallback && pending.length > 0) {
+        totalUnprocessed += pending.length;
       }
     }
 

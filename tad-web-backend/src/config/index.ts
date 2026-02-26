@@ -45,6 +45,7 @@ export const config = {
     clientId: env.APS_CLIENT_ID,
     clientSecret: env.APS_CLIENT_SECRET,
     baseUrl: env.AUTODESK_BASE_URL,
+    hubAecId: process.env.APS_HUB_AEC_ID || "",
     scopes: {
       threeLegged: env.THREE_LEGGED_TOKEN_SCOPES.split(' '),
       twoLegged: env.TWO_LEGGED_TOKEN_SCOPES.split(' ')
@@ -79,6 +80,14 @@ export const config = {
         modelChecker: process.env.DYNAMODB_TABLE_MODELCHECKER || 'TAD_Model_Checker',
         plans: process.env.DYNAMODB_TABLE_PLANS || 'Tad_Plans',
         tasks: process.env.DYNAMODB_TABLE_TASKS || 'Tad_Tasks',
+        parameterChecks: process.env.DYNAMODB_TABLE_PARAMETER_CHECKS || 'Tad_Parameter_Checks',
+        parameterElements: process.env.DYNAMODB_TABLE_PARAMETER_ELEMENTS || 'Tad_Parameter_Elements',
+        wbsSets: process.env.DYNAMODB_TABLE_WBS_SETS || process.env.DYNAMODB_TABLE_WBSSETS || 'Tad_Wbs_Sets',
+        wbsItems: process.env.DYNAMODB_TABLE_ITEMS || process.env.DYNAMODB_TABLE_WBS_ITEMS || 'Tad_Wbs_Items',
+        wbsElementMatches:
+          process.env.DYNAMODB_TABLE_ELEMENTS_MATCHES ||
+          process.env.DYNAMODB_TABLE_WBS_ELEMENTS_MATCHES ||
+          'Tad_Wbs_Element_Matches',
       }
     }
   }

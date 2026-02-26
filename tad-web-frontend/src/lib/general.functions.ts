@@ -106,7 +106,7 @@ export interface IRowData {
   export const reorderRowsByDisciplineAndGroup = (rows: IRowData[]): IRowData[] => {
     const grouped = rows.reduce((acc: Record<string, Record<string, IRowData[]>>, row) => {
       const disciplineKey = row.Discipline || "Sin Disciplina";
-      const codeKey = row.Code || "Sin Código";
+      const codeKey = row.Code || "No Code";
       if (!acc[disciplineKey]) acc[disciplineKey] = {};
       if (!acc[disciplineKey][codeKey]) acc[disciplineKey][codeKey] = [];
       acc[disciplineKey][codeKey].push(row);

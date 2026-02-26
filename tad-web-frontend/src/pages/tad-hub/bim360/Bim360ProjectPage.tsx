@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"; // <--- Agregado
 import { ScrollArea } from "@/components/ui/scroll-area"; // <--- Agregado
 import { Badge } from "@/components/ui/badge"; // <--- Agregado
+import ModulePageHeader from "@/components/hub/ModulePageHeader";
 import { 
   Users, AlertCircle, FileText, ArrowLeft, 
   Box, Cuboid, Loader2 // <--- Nuevos iconos agregados
@@ -118,7 +119,9 @@ const Bim360ProjectPage = () => {
       setLoadingModels(true);
       // Asumimos que DmService maneja la lógica de Hub ID internamente o concatenando 'b.'
       const data = await DmService.getProjectModels(projectId, accountId);
-      setModels(data.data || []);
+      const projectModels = Array.isArray(data?.data) ? data.data : [];
+      const filtered = projectModels.filter((file: IModelFile) => ["rvt", "nwd"].includes(String(file.extension).toLowerCase()));
+      setModels(filtered);
     } catch (err) {
       console.error("Error fetching models:", err);
     } finally {
@@ -131,7 +134,6 @@ const Bim360ProjectPage = () => {
   // ------------------------------------------
   useEffect(() => {
     if (selectedUrn && !viewerInitialized.current) {
-      console.log("Viewr:", selectedUrn);
       setTimeout(() => {
         simpleViewer(selectedUrn);
         viewerInitialized.current = true; 
@@ -162,27 +164,23 @@ const Bim360ProjectPage = () => {
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500 h-full overflow-y-auto">
-      
-      {/* --- HEADER --- */}
-      <div className="flex flex-col space-y-2">
-        <Link to="/bim360projects" className="text-sm text-muted-foreground hover:text-primary flex items-center mb-2">
-            <ArrowLeft className="h-4 w-4 mr-1" /> Back to Projects
+      <div className="space-y-2">
+        <Link to="/bim360projects" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary">
+          <ArrowLeft className="mr-1 h-4 w-4" /> Back to Projects
         </Link>
-        <div className="flex justify-between items-start">
-            <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                {loading ? <Skeleton className="h-9 w-96" /> : project?.name || "BIM 360 Project"}
-            </h1>
-            <div className="text-sm text-muted-foreground mt-1 flex gap-2">
-                <span>Account ID: {accountId}</span>
-                <span>•</span>
-                <span>Project ID: {projectId}</span>
-            </div>
-            </div>
-        </div>
+        <ModulePageHeader
+          title="Project Overview"
+          description={
+            loading
+              ? "Loading project dashboard metrics..."
+              : `Overview metrics and model actions for ${project?.name || "the selected project"}.`
+          }
+        >
+          <span>Account ID: {accountId}</span>
+          <span className="mx-2">|</span>
+          <span>Project ID: {projectId}</span>
+        </ModulePageHeader>
       </div>
-
-      <hr className="border-border" />
 
       {/* --- STATS CARDS --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -216,7 +214,7 @@ const Bim360ProjectPage = () => {
                     {loadingModels ? (
                         <div className="flex flex-col items-center justify-center py-10 space-y-3">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                            <p className="text-sm text-muted-foreground">Searching for .rvt, .dwg, .nwd files...</p>
+                            <p className="text-sm text-muted-foreground">Searching for .rvt and .nwd files...</p>
                         </div>
                     ) : (
                         <ScrollArea className="h-[300px] pr-4">
@@ -343,3 +341,4 @@ const StatCard = ({ title, value, subtext, icon, loading }: any) => (
 );
 
 export default React.memo(Bim360ProjectPage);
+

@@ -5,15 +5,16 @@ import { utils, writeFile } from "xlsx";
 
 // UI
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import ModulePageHeader from "@/components/hub/ModulePageHeader";
 import { StatCard } from "@/components/users/stat-card";
 import { FileBox, Clock, CheckCircle, Download, FilterX, ListTodo, GanttChart } from "lucide-react";
 
 // Components
-import { SubmittalStatusChart, SubmittalSpecChart } from "@/components/submittals/submittals-charts";
+import { SubmittalsChartsCarousel } from "@/components/submittals/submittals-charts-carousel";
 import { SubmittalsTable } from "@/components/submittals/submittals-table";
 import { SubmittalsGanttChart } from "@/components/submittals/submittals-gantt-chart";
 
@@ -71,16 +72,22 @@ export default function ACCProjectSubmittalsPage() {
 
   return (
     <div className="space-y-6 p-6 min-h-screen bg-slate-50/50 animate-in fade-in">
-      <div className="flex justify-between items-center">
-        <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Submittals Dashboard</h1>
-            <p className="text-slate-500 mt-1">Manage project submittals</p>
-        </div>
-        <div className="flex gap-2">
-            {activeFilter && <Button variant="outline" onClick={() => setActiveFilter(null)}><FilterX className="mr-2 h-4 w-4"/> Clear Filter</Button>}
-            <Button onClick={handleExport}><Download className="mr-2 h-4 w-4"/> Export</Button>
-        </div>
-      </div>
+      <ModulePageHeader
+        title="Submittals"
+        description="Manage project submittals."
+        actions={
+          <>
+            {activeFilter && (
+              <Button variant="outline" onClick={() => setActiveFilter(null)}>
+                <FilterX className="mr-2 h-4 w-4" /> Clear Filter
+              </Button>
+            )}
+            <Button onClick={handleExport}>
+              <Download className="mr-2 h-4 w-4" /> Export
+            </Button>
+          </>
+        }
+      />
 
       {activeFilter && (
         <div className="flex items-center gap-2">
@@ -98,40 +105,34 @@ export default function ACCProjectSubmittalsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="space-y-6">
-            <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-base">Status</CardTitle></CardHeader>
-                <CardContent className="h-[250px]">
-                    {loading ? <Skeleton className="h-full"/> : <SubmittalStatusChart data={counts.status} onClick={(v: string) => setActiveFilter({key: 'status', value: v})} />}
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-base">Specification</CardTitle></CardHeader>
-                <CardContent className="h-[300px]">
-                    {loading ? <Skeleton className="h-full"/> : <SubmittalSpecChart data={counts.spec} onClick={(v: string) => setActiveFilter({key: 'spec', value: v})} />}
-                </CardContent>
-            </Card>
+        <div className="h-[750px]">
+          <SubmittalsChartsCarousel
+            counts={counts}
+            loading={loading}
+            onFilter={(key, value) => setActiveFilter({ key, value })}
+            className="h-full"
+          />
         </div>
 
-        <div className="lg:col-span-2">
-            <Card className="h-full border-none shadow-none bg-transparent">
-                <Tabs defaultValue="list" className="h-full flex flex-col">
-                    <div className="flex justify-between items-center mb-4">
-                        <TabsList className="bg-white border">
-                            <TabsTrigger value="list" className="gap-2"><ListTodo className="h-4 w-4"/> List</TabsTrigger>
-                            <TabsTrigger value="gantt" className="gap-2"><GanttChart className="h-4 w-4"/> Timeline</TabsTrigger>
-                        </TabsList>
-                    </div>
-                    <Card className="flex-1 overflow-hidden bg-white">
-                        <TabsContent value="list" className="m-0 h-full p-4 overflow-auto">
-                            {loading ? <Skeleton className="h-full"/> : <SubmittalsTable items={filtered} />}
-                        </TabsContent>
-                        <TabsContent value="gantt" className="m-0 h-full p-4 overflow-auto">
-                            {loading ? <Skeleton className="h-full"/> : <SubmittalsGanttChart submittals={filtered} />}
-                        </TabsContent>
-                    </Card>
-                </Tabs>
-            </Card>
+        <div className="lg:col-span-2 h-[750px]">
+          <Card className="h-full border-none shadow-none bg-transparent">
+            <Tabs defaultValue="list" className="h-full flex flex-col">
+              <div className="flex justify-between items-center mb-4">
+                <TabsList className="bg-white border">
+                  <TabsTrigger value="list" className="gap-2"><ListTodo className="h-4 w-4"/> List</TabsTrigger>
+                  <TabsTrigger value="gantt" className="gap-2"><GanttChart className="h-4 w-4"/> Timeline</TabsTrigger>
+                </TabsList>
+              </div>
+              <Card className="flex-1 overflow-hidden bg-white">
+                <TabsContent value="list" className="m-0 h-full p-4 overflow-auto">
+                  {loading ? <Skeleton className="h-full"/> : <SubmittalsTable items={filtered} />}
+                </TabsContent>
+                <TabsContent value="gantt" className="m-0 h-full p-4 overflow-auto">
+                  {loading ? <Skeleton className="h-full"/> : <SubmittalsGanttChart submittals={filtered} />}
+                </TabsContent>
+              </Card>
+            </Tabs>
+          </Card>
         </div>
       </div>
     </div>

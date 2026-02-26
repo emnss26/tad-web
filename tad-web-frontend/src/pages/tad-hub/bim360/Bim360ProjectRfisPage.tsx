@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import ModulePageHeader from "@/components/hub/ModulePageHeader";
 import { StatCard } from "@/components/users/stat-card";
 import { FileText, Clock, CheckCircle, Download, FilterX, ListTodo, GanttChart } from "lucide-react";
 
@@ -31,7 +32,7 @@ export default function Bim360ProjectRfisPage() {
         setRfis(list);
         setFilteredRfis(list);
       })
-      .catch(err => console.error("Error loading RFIs", err))
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [projectId]);
 
@@ -70,22 +71,22 @@ export default function Bim360ProjectRfisPage() {
 
   return (
     <div className="space-y-6 p-6 min-h-screen bg-indigo-50/30 animate-in fade-in">
-        <div className="flex justify-between items-center">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight text-indigo-900">BIM 360 RFIs</h1>
-                <p className="text-slate-500 mt-1">Request for Information tracking</p>
-            </div>
-            <div className="flex gap-2">
-                {activeFilter && (
-                    <Button variant="outline" onClick={() => setActiveFilter(null)}>
-                        <FilterX className="mr-2 h-4 w-4"/> Clear Filter
+        <ModulePageHeader
+            title="RFIs"
+            description="Request for Information tracking."
+            actions={
+                <>
+                    {activeFilter && (
+                        <Button variant="outline" onClick={() => setActiveFilter(null)}>
+                            <FilterX className="mr-2 h-4 w-4" /> Clear Filter
+                        </Button>
+                    )}
+                    <Button onClick={handleExport} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700">
+                        <Download className="mr-2 h-4 w-4" /> Export
                     </Button>
-                )}
-                <Button onClick={handleExport} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700">
-                    <Download className="mr-2 h-4 w-4"/> Export
-                </Button>
-            </div>
-        </div>
+                </>
+            }
+        />
 
         {/* KPI */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -99,17 +100,17 @@ export default function Bim360ProjectRfisPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Charts Column */}
-            <div>
+            <div className="h-[650px]">
                 <RfiChartsCarousel
                     counts={counts}
                     loading={loading}
                     onFilter={(key, value) => setActiveFilter({ key, value })}
-                    className="border-indigo-100"
+                    className="h-full border-indigo-100"
                 />
             </div>
 
             {/* List/Gantt Column */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 h-[650px]">
                 <Card className="h-full border-none shadow-none bg-transparent">
                     <Tabs defaultValue="list" className="h-full flex flex-col">
                         <div className="flex justify-between items-center mb-4">
@@ -121,7 +122,7 @@ export default function Bim360ProjectRfisPage() {
 
                         <Card className="flex-1 overflow-hidden bg-white border-indigo-100">
                             <TabsContent value="list" className="m-0 h-full p-4 overflow-auto">
-                                {loading ? <Skeleton className="h-full"/> : <RfisTable rfis={filteredRfis} onViewDetails={(id: string) => console.log(id)} />}
+                                {loading ? <Skeleton className="h-full"/> : <RfisTable rfis={filteredRfis} onViewDetails={() => {}} />}
                             </TabsContent>
                             <TabsContent value="gantt" className="m-0 h-full p-4 overflow-auto">
                                 {loading ? <Skeleton className="h-full"/> : <RfisGanttChart rfis={filteredRfis} />}

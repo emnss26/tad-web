@@ -5,6 +5,7 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import ModulePageHeader from "@/components/hub/ModulePageHeader";
 import { ProjectPlansService } from "@/services/project.plans.service";
 import { DmService } from "@/services/dm.service";
 import { PlansTable } from "@/components/plans/plans-table";
@@ -391,35 +392,39 @@ export default function ProjectPlansPage({ platform }: ProjectPlansPageProps) {
   return (
     <div className="flex min-h-full">
       <main className="w-full min-w-0 bg-white p-2 px-4">
-        <h1 className="mt-2 text-right text-xl">PROJECT PLANS MANAGEMENT ({platform.toUpperCase()})</h1>
-        <hr className="my-4 border-t border-gray-300" />
-
-        <div className="mb-4 flex flex-wrap justify-end gap-2">
-          <Button variant="outline" onClick={() => setShowMapping(true)}>
-            Files - Folder mapping
-          </Button>
-          <Button variant="outline" onClick={fetchPlansData} disabled={loading}>
-            Pull Data
-          </Button>
-          <Button onClick={handleSubmit} disabled={saving || loading}>
-            {saving ? "Sending..." : "Send Data"}
-          </Button>
-          <Button variant="outline" onClick={() => setTableFilter({ discipline: null, revision: null })}>
-            Reset Chart Filter
-          </Button>
-          <Button variant="outline" onClick={handleExportPlans}>
-            Export Plans List
-          </Button>
-          <label className="inline-flex cursor-pointer items-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground">
-            Import Excel
-            <input
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleImportPlans}
-              className="hidden"
-            />
-          </label>
-        </div>
+        <ModulePageHeader
+          title="Plans Management"
+          description={`Manage project plans, revisions, and discipline distribution (${platform.toUpperCase()}).`}
+          actions={
+            <>
+              <Button variant="outline" onClick={() => setShowMapping(true)}>
+                Files - Folder Mapping
+              </Button>
+              <Button variant="outline" onClick={fetchPlansData} disabled={loading}>
+                Pull Data
+              </Button>
+              <Button onClick={handleSubmit} disabled={saving || loading}>
+                {saving ? "Sending..." : "Send Data"}
+              </Button>
+              <Button variant="outline" onClick={() => setTableFilter({ discipline: null, revision: null })}>
+                Reset Chart Filter
+              </Button>
+              <Button variant="outline" onClick={handleExportPlans}>
+                Export Plans List
+              </Button>
+              <label className="inline-flex cursor-pointer items-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground">
+                Import Excel
+                <input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleImportPlans}
+                  className="hidden"
+                />
+              </label>
+            </>
+          }
+          className="mt-2 mb-4"
+        />
 
         {loading && (
           <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">

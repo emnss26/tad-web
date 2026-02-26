@@ -100,7 +100,7 @@ export function TaskManagementTable({
             {tasks.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="py-6 text-center text-sm text-muted-foreground">
-                  No hay tareas registradas.
+                  No tasks registered.
                 </TableCell>
               </TableRow>
             )}

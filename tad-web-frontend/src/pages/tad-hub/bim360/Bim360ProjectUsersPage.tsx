@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import ModulePageHeader from "@/components/hub/ModulePageHeader";
 import { Users, Briefcase, UserCheck, Download, FilterX, Building2, Shield, AlertCircle } from "lucide-react";
 
 // Custom Components
@@ -51,8 +52,7 @@ export default function Bim360ProjectUsersPage() {
         setFilteredUsers(rawUsers);
         processStats(rawUsers);
 
-      } catch (err: any) {
-        console.error("Error loading BIM360 users:", err);
+      } catch {
         setError("Failed to load project users.");
       } finally {
         setLoading(false);
@@ -149,27 +149,28 @@ export default function Bim360ProjectUsersPage() {
 
   return (
     <div className="min-h-screen bg-muted/30 p-6 space-y-6 animate-in fade-in duration-500">
-      
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-indigo-900 dark:text-indigo-100">BIM 360 Team</h1>
-            <p className="text-muted-foreground mt-1">Manage classic project members</p>
-          </div>
-          <div className="flex gap-2">
-            {hasFilters && (
-              <Button
-                variant="outline"
-                onClick={() => { setSelectedCompany(null); setSelectedRole(null); }}
-              >
-                <FilterX className="mr-2 h-4 w-4" /> Clear Filters
+        <ModulePageHeader
+          title="Users"
+          description="Manage project team members."
+          actions={
+            <>
+              {hasFilters && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedCompany(null);
+                    setSelectedRole(null);
+                  }}
+                >
+                  <FilterX className="mr-2 h-4 w-4" /> Clear Filters
+                </Button>
+              )}
+              <Button onClick={handleExport} disabled={loading || filteredUsers.length === 0} className="bg-indigo-600 hover:bg-indigo-700">
+                <Download className="mr-2 h-4 w-4" /> Export
               </Button>
-            )}
-            <Button onClick={handleExport} disabled={loading || filteredUsers.length === 0} className="bg-indigo-600 hover:bg-indigo-700">
-              <Download className="mr-2 h-4 w-4" /> Export
-            </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* Active Filters Badges */}
         {hasFilters && (
@@ -189,11 +190,10 @@ export default function Bim360ProjectUsersPage() {
         )}
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard title="Total Users" value={stats.total} icon={<Users className="h-5 w-5 text-indigo-500" />} loading={loading} />
           <StatCard title="Active Users" value={stats.active} icon={<UserCheck className="h-5 w-5 text-green-500" />} loading={loading} variant="success" description={`${stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0}% of total`} />
           <StatCard title="Companies" value={stats.companiesCount} icon={<Briefcase className="h-5 w-5 text-blue-500" />} loading={loading} />
-          <StatCard title="Filtered View" value={filteredUsers.length} loading={loading} variant="primary" description={hasFilters ? "Based on filters" : "All users"} />
         </div>
 
         {/* Charts */}

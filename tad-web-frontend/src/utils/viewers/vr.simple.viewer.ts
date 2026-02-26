@@ -81,7 +81,7 @@ export const vrSimpleViewer = async (urn: string, containerId = "TADSimpleVrViwe
               vrButton.onClick = () => {
                 viewer
                   .loadExtension("Autodesk.Viewing.WebVR")
-                  .then(() => console.log("WebVR extension loaded"))
+                  .then(() => {})
                   .catch((err: unknown) => console.error("Error loading WebVR extension", err));
               };
 

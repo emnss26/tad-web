@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs" // <--- IMPORTANTE
+import ModulePageHeader from "@/components/hub/ModulePageHeader"
 import { AlertCircle, CheckCircle2, ListTodo, Download, FilterX, BarChart3, Clock, GanttChart } from "lucide-react"
 
 // Components
@@ -98,24 +99,22 @@ export default function ACCProjectIssuesPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 space-y-6 animate-in fade-in duration-500">
-      
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Issues Dashboard</h1>
-            <p className="text-slate-500 mt-1">Track project issues and defects</p>
-        </div>
-        <div className="flex gap-2">
+      <ModulePageHeader
+        title="Issues"
+        description="Track project issues and defects."
+        actions={
+          <>
             {selectedStatus && (
-                <Button variant="outline" onClick={() => setSelectedStatus(null)}>
-                    <FilterX className="mr-2 h-4 w-4"/> Clear Filter
-                </Button>
+              <Button variant="outline" onClick={() => setSelectedStatus(null)}>
+                <FilterX className="mr-2 h-4 w-4" /> Clear Filter
+              </Button>
             )}
             <Button onClick={handleExport} disabled={loading || issues.length === 0}>
-                <Download className="mr-2 h-4 w-4"/> Export
+              <Download className="mr-2 h-4 w-4" /> Export
             </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -170,7 +169,7 @@ export default function ACCProjectIssuesPage() {
                         <CardContent className="flex-1 p-0 overflow-hidden">
                             <TabsContent value="table" className="h-full m-0 p-0">
                                 {loading ? <div className="p-6 space-y-2"><Skeleton className="h-10 w-full"/><Skeleton className="h-64 w-full"/></div> : 
-                                    <IssuesTable issues={filteredIssues} onViewDetails={(id) => console.log("View", id)} />
+                                    <IssuesTable issues={filteredIssues} onViewDetails={() => {}} />
                                 }
                             </TabsContent>
                             

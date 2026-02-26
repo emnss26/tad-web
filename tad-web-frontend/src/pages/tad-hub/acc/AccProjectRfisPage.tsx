@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import ModulePageHeader from "@/components/hub/ModulePageHeader";
 import { StatCard } from "@/components/users/stat-card";
 import { FileText, Clock, CheckCircle, Download, FilterX, ListTodo, GanttChart } from "lucide-react";
 
@@ -74,20 +75,22 @@ export default function ACCProjectRfisPage() {
 
   return (
     <div className="space-y-6 p-6 min-h-screen bg-slate-50/50 animate-in fade-in">
-        <div className="flex justify-between items-center">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900">RFIs Dashboard</h1>
-                <p className="text-slate-500 mt-1">Request for Information tracking</p>
-            </div>
-            <div className="flex gap-2">
-                {activeFilter && (
-                    <Button variant="outline" onClick={() => setActiveFilter(null)}>
-                        <FilterX className="mr-2 h-4 w-4"/> Clear Filter
+        <ModulePageHeader
+            title="RFIs"
+            description="Request for Information tracking."
+            actions={
+                <>
+                    {activeFilter && (
+                        <Button variant="outline" onClick={() => setActiveFilter(null)}>
+                            <FilterX className="mr-2 h-4 w-4" /> Clear Filter
+                        </Button>
+                    )}
+                    <Button onClick={handleExport} disabled={loading}>
+                        <Download className="mr-2 h-4 w-4" /> Export
                     </Button>
-                )}
-                <Button onClick={handleExport} disabled={loading}><Download className="mr-2 h-4 w-4"/> Export</Button>
-            </div>
-        </div>
+                </>
+            }
+        />
 
         {/* Active Filter Badge */}
         {activeFilter && (
@@ -111,16 +114,17 @@ export default function ACCProjectRfisPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Left Column: Charts Carousel */}
-            <div>
+            <div className="h-[650px]">
                 <RfiChartsCarousel
                     counts={counts}
                     loading={loading}
                     onFilter={(key, value) => setActiveFilter({ key, value })}
+                    className="h-full"
                 />
             </div>
 
             {/* Right Column: Tabs (Table / Gantt) */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 h-[650px]">
                 <Card className="h-full border-none shadow-none bg-transparent">
                     <Tabs defaultValue="list" className="h-full flex flex-col">
                         <div className="flex justify-between items-center mb-4">
@@ -132,7 +136,7 @@ export default function ACCProjectRfisPage() {
 
                         <Card className="flex-1 overflow-hidden bg-white">
                             <TabsContent value="list" className="m-0 h-full p-4 overflow-auto">
-                                {loading ? <Skeleton className="h-full"/> : <RfisTable rfis={filteredRfis} onViewDetails={(id: string) => console.log(id)} />}
+                                {loading ? <Skeleton className="h-full"/> : <RfisTable rfis={filteredRfis} onViewDetails={() => {}} />}
                             </TabsContent>
                             <TabsContent value="gantt" className="m-0 h-full p-4 overflow-auto">
                                 {loading ? <Skeleton className="h-full"/> : <RfisGanttChart rfis={filteredRfis} />}

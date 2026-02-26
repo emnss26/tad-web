@@ -3,9 +3,11 @@ import { body } from "express-validator";
 import validate from "../middlewares/validation.middleware";
 import {
   deleteDataModel,
+  getProjectComplianceData,
   getDataModel,
   patchDataModel,
   postDataModel,
+  postDataModelBulk,
 } from "../controllers/model_checker/model.checker.controller";
 
 const router = Router();
@@ -15,9 +17,15 @@ const createOrPatchValidators = [
   body("row").notEmpty().withMessage("Row is required").isInt({ min: 1 }),
   body("concept").notEmpty().withMessage("Concept is required"),
   body("req_lod").notEmpty().withMessage("Required Level of Detail is required"),
-  body("complet_geometry").notEmpty().withMessage("Completed Geometry is required"),
-  body("lod_compliance").notEmpty().withMessage("Level of Detail Compliance is required"),
-  body("comments").optional().isString().withMessage("Comments must be a string"),
+  body("complet_geometry")
+    .optional({ nullable: true })
+    .isIn(["Y", "N", "NA"])
+    .withMessage("Completed Geometry must be Y, N, NA or null"),
+  body("lod_compliance")
+    .optional({ nullable: true })
+    .isIn(["Y", "N", "NA"])
+    .withMessage("Level of Detail Compliance must be Y, N, NA or null"),
+  body("comments").optional({ nullable: true }).isString().withMessage("Comments must be a string"),
   body("modelId").optional().isString().withMessage("modelId must be a string"),
   validate,
 ];
@@ -26,15 +34,27 @@ const patchValidators = [
   body("row").notEmpty().withMessage("Row is required").isInt({ min: 1 }),
   body("concept").notEmpty().withMessage("Concept is required"),
   body("req_lod").notEmpty().withMessage("Required Level of Detail is required"),
-  body("complet_geometry").notEmpty().withMessage("Completed Geometry is required"),
-  body("lod_compliance").notEmpty().withMessage("Level of Detail Compliance is required"),
-  body("comments").optional().isString().withMessage("Comments must be a string"),
+  body("complet_geometry")
+    .optional({ nullable: true })
+    .isIn(["Y", "N", "NA"])
+    .withMessage("Completed Geometry must be Y, N, NA or null"),
+  body("lod_compliance")
+    .optional({ nullable: true })
+    .isIn(["Y", "N", "NA"])
+    .withMessage("Level of Detail Compliance must be Y, N, NA or null"),
+  body("comments").optional({ nullable: true }).isString().withMessage("Comments must be a string"),
   body("modelId").optional().isString().withMessage("modelId must be a string"),
   validate,
 ];
 
+router.post("/:accountId/:projectId/:modelId/model-checker/bulk", postDataModelBulk);
+router.post("/:accountId/:projectId/model-checker/bulk", postDataModelBulk);
+
 router.post("/:accountId/:projectId/:modelId/model-checker", createOrPatchValidators, postDataModel);
 router.post("/:accountId/:projectId/model-checker", createOrPatchValidators, postDataModel);
+
+router.get("/:accountId/:projectId/:modelId/model-checker-compliance", getProjectComplianceData);
+router.get("/:accountId/:projectId/model-checker-compliance", getProjectComplianceData);
 
 router.get("/:accountId/:projectId/:modelId/model-checker/:discipline", getDataModel);
 router.get("/:accountId/:projectId/model-checker/:discipline", getDataModel);

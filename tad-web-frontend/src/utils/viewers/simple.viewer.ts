@@ -9,11 +9,8 @@ const backendUrl = import.meta.env.VITE_API_BACKEND_BASE_URL || "http://localhos
  */
 export const simpleViewer = async (urn: string): Promise<void> => {
   try {
-
-    console.log("Initializing viewer with URN:", urn);
     // 1. Obtener Token del Backend
     const response = await fetch(`${backendUrl}/api/auth/two-legged`);
-    console.log("Token", response)
     
     if (!response.ok) {
       throw new Error(`Failed to fetch token: ${response.statusText}`);
@@ -56,8 +53,6 @@ export const simpleViewer = async (urn: string): Promise<void> => {
       // IMPORTANTE: El viewer necesita la URN en Base64.
       // Tu backend devuelve la URN plana, así que aquí la codificamos.
       const documentId = `urn:${btoa(urn)}`;
-      console.log("Original URN:", urn);
-      console.log("Loading document with ID:", documentId);
 
       Autodesk.Viewing.Document.load(
         documentId,

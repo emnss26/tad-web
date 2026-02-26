@@ -1,6 +1,6 @@
 "use client"
 
-import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 
 type CountMap = Record<string, number>
 
@@ -21,12 +21,6 @@ interface RfiDisciplineChartProps {
 
 interface PiePoint {
   key: string
-  name: string
-  value: number
-  fill: string
-}
-
-interface BarPoint {
   name: string
   value: number
   fill: string
@@ -143,34 +137,10 @@ export function RfiPriorityChart({ data, onClick }: RfiPriorityChartProps) {
 }
 
 export function RfiDisciplineChart({ data, onClick }: RfiDisciplineChartProps) {
-  const chartData: BarPoint[] = Object.entries(data)
-    .map(([key, rawValue], index) => ({
-      name: key.length > 18 ? `${key.slice(0, 18)}...` : key,
-      value: Math.max(0, Math.round(Number(rawValue) || 0)),
-      fill: COLORS.discipline[index % COLORS.discipline.length],
-    }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 10)
+  const palette = Object.keys(data).reduce<Record<string, string>>((acc, key, index) => {
+    acc[key] = COLORS.discipline[index % COLORS.discipline.length]
+    return acc
+  }, {})
 
-  if (chartData.length === 0) {
-    return <div className="flex h-full items-center justify-center text-muted-foreground">No data available</div>
-  }
-
-  const maxValue = Math.max(...chartData.map((item) => item.value))
-  const domainMax = Math.max(1, maxValue)
-
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={chartData} layout="vertical" margin={{ top: 8, right: 16, left: 20, bottom: 8 }}>
-        <XAxis type="number" domain={[0, domainMax]} allowDecimals={false} axisLine={false} tickLine={false} />
-        <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-        <Tooltip />
-        <Bar dataKey="value" radius={[0, 4, 4, 0]} onClick={(entry) => onClick?.(entry.name)} className="cursor-pointer">
-          {chartData.map((entry, index) => (
-            <Cell key={`${entry.name}-${index}`} fill={entry.fill} />
-          ))}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
-  )
+  return <RfiPieChart data={data} palette={palette} onClick={onClick} />
 }

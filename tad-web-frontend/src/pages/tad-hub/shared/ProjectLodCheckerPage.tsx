@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import ModulePageHeader from "@/components/hub/ModulePageHeader";
 import {
   Dialog,
   DialogContent,
@@ -9,10 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Box, Loader2 } from "lucide-react";
+import { BarChart3, Box, CheckCircle2, Loader2 } from "lucide-react";
 import { DmService } from "@/services/dm.service";
 import { ModelCheckerService } from "@/services/model.checker.service";
-import type { LodCheckerApiRow } from "@/services/model.checker.service";
+import type { LodCheckerApiRow, LodProjectComplianceResponse } from "@/services/model.checker.service";
+import { StatCard } from "@/components/users/stat-card";
 import { DisciplineSidebar } from "@/components/lod-checker/discipline-sidebar";
 import { LodCheckerTable } from "@/components/lod-checker/lod-checker-table";
 import { DISCIPLINES } from "@/components/lod-checker/lod-checker.types";
@@ -47,8 +49,10 @@ export default function ProjectLodCheckerPage({ platform }: ProjectLodCheckerPag
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [projectCompliance, setProjectCompliance] = useState<LodProjectComplianceResponse | null>(null);
 
   const [federatedModel, setFederatedModel] = useState<string | null>(null);
+  const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
   const [selectedModelUrn, setSelectedModelUrn] = useState<string | null>(null);
 
   const [showMapping, setShowMapping] = useState(false);
@@ -56,6 +60,10 @@ export default function ProjectLodCheckerPage({ platform }: ProjectLodCheckerPag
   const [loadingModels, setLoadingModels] = useState(false);
 
   const urnToLoad = useMemo(() => selectedModelUrn || federatedModel, [selectedModelUrn, federatedModel]);
+  const complianceLoading = Boolean(selectedModelId) && !projectCompliance && !error;
+  const overallCompliance = projectCompliance?.totals.overall ?? 0;
+  const geometryCompliance = projectCompliance?.totals.geometry.percentage ?? 0;
+  const lodCompliance = projectCompliance?.totals.lod.percentage ?? 0;
 
   useEffect(() => {
     if (!projectId || !accountId) return;
@@ -81,11 +89,22 @@ export default function ProjectLodCheckerPage({ platform }: ProjectLodCheckerPag
     if (!projectId || !accountId || !discipline) return;
 
     const loadDisciplineRows = async () => {
+      if (!selectedModelId) {
+        setRows(makeDefaultRows(discipline));
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setMessage(null);
 
-        const fetchedRows = await ModelCheckerService.getRowsByDiscipline(projectId, accountId, discipline);
+        const fetchedRows = await ModelCheckerService.getRowsByDiscipline(
+          projectId,
+          accountId,
+          discipline,
+          selectedModelId
+        );
         setRows(apiRowsToUiRows(fetchedRows, discipline));
       } catch (err: any) {
         console.error("[ProjectLodCheckerPage.loadDisciplineRows]", err);
@@ -96,7 +115,7 @@ export default function ProjectLodCheckerPage({ platform }: ProjectLodCheckerPag
     };
 
     loadDisciplineRows();
-  }, [accountId, discipline, projectId]);
+  }, [accountId, discipline, projectId, selectedModelId]);
 
   useEffect(() => {
     if (!urnToLoad) return;
@@ -121,33 +140,50 @@ export default function ProjectLodCheckerPage({ platform }: ProjectLodCheckerPag
     }
   };
 
+  const loadProjectCompliance = async () => {
+    if (!projectId || !accountId || !selectedModelId) {
+      setProjectCompliance(null);
+      return;
+    }
+
+    try {
+      const summary = await ModelCheckerService.getProjectCompliance(projectId, accountId, selectedModelId);
+      setProjectCompliance(summary);
+    } catch {
+      setProjectCompliance(null);
+    }
+  };
+
+  useEffect(() => {
+    loadProjectCompliance();
+  }, [accountId, projectId, selectedModelId]);
+
   const handleSaveRows = async () => {
     if (!projectId || !accountId) return;
+    if (!selectedModelId) {
+      setError("Select a model before saving LOD checker rows.");
+      return;
+    }
 
     try {
       setSaving(true);
       setError(null);
       setMessage(null);
 
-      const toSend = rows.filter((row) => !row.geometriaCompleta.na && !row.lodCompletion.na);
+      const payload: LodCheckerApiRow[] = rows.map((row) => ({
+        discipline,
+        row: row.row,
+        concept: row.concepto,
+        req_lod: String(row.lodRequerido),
+        complet_geometry: formatGeometryStatus(row.geometriaCompleta),
+        lod_compliance: formatGeometryStatus(row.lodCompletion),
+        comments: row.comentarios || "",
+      }));
 
-      await Promise.all(
-        toSend.map((row) => {
-          const payload: LodCheckerApiRow = {
-            discipline,
-            row: row.row,
-            concept: row.concepto,
-            req_lod: String(row.lodRequerido),
-            complet_geometry: formatGeometryStatus(row.geometriaCompleta),
-            lod_compliance: formatGeometryStatus(row.lodCompletion),
-            comments: row.comentarios || "",
-          };
+      await ModelCheckerService.saveRowsBulk(projectId, accountId, selectedModelId, payload);
+      await loadProjectCompliance();
 
-          return ModelCheckerService.saveRow(projectId, accountId, payload);
-        })
-      );
-
-      setMessage(`Saved ${toSend.length} rows for ${discipline}.`);
+      setMessage(`Saved ${rows.length} rows for ${discipline}.`);
     } catch (err: any) {
       console.error("[ProjectLodCheckerPage.handleSaveRows]", err);
       setError(err?.message || "Error saving LOD checker rows.");
@@ -159,26 +195,58 @@ export default function ProjectLodCheckerPage({ platform }: ProjectLodCheckerPag
   return (
     <div>
       <main className="min-w-0 bg-white p-2 px-4">
-        <h1 className="mt-2 text-right text-xl text-black">PROJECT MODEL CHECKER ({platform.toUpperCase()})</h1>
-        <hr className="my-4 border-t border-gray-300" />
-
-        <div className="mb-3 flex flex-wrap gap-2">
-          <Button onClick={handleSaveRows} disabled={saving || loading}>
-            {saving ? "Saving..." : "Send Data"}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setShowMapping(true);
-              fetchModels();
-            }}
-          >
-            Model mapping
-          </Button>
-        </div>
+        <ModulePageHeader
+          title="LOD Checker"
+          description={`Review LOD compliance and geometry status by discipline (${platform.toUpperCase()}).`}
+          actions={
+            <>
+              <Button onClick={handleSaveRows} disabled={saving || loading || !selectedModelId}>
+                {saving ? "Saving..." : "Send Data"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowMapping(true);
+                  fetchModels();
+                }}
+              >
+                Model Selector
+              </Button>
+            </>
+          }
+          className="mt-2 mb-3"
+        />
 
         {error && <p className="text-sm text-red-500">{error}</p>}
         {message && <p className="text-sm text-emerald-600">{message}</p>}
+        {selectedModelId && (
+          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+            <StatCard
+              title="Project LOD Compliance"
+              value={`${overallCompliance}%`}
+              icon={<BarChart3 className="h-5 w-5" />}
+              loading={complianceLoading}
+              variant="primary"
+              description="Overall compliance"
+            />
+            <StatCard
+              title="Geometry Compliance"
+              value={`${geometryCompliance}%`}
+              icon={<CheckCircle2 className="h-5 w-5" />}
+              loading={complianceLoading}
+              variant="success"
+              description="Y over valid geometry checks"
+            />
+            <StatCard
+              title="LOD Compliance"
+              value={`${lodCompliance}%`}
+              icon={<CheckCircle2 className="h-5 w-5" />}
+              loading={complianceLoading}
+              variant="warning"
+              description="Y over valid LOD checks"
+            />
+          </div>
+        )}
       </main>
 
       <Dialog open={showMapping} onOpenChange={setShowMapping}>
@@ -203,6 +271,7 @@ export default function ProjectLodCheckerPage({ platform }: ProjectLodCheckerPag
                       key={file.id}
                       className="group flex w-full items-center justify-between rounded-md border p-3 text-left transition hover:bg-accent"
                       onClick={() => {
+                        setSelectedModelId(file.id);
                         setSelectedModelUrn(file.urn);
                         setShowMapping(false);
                       }}
@@ -231,26 +300,30 @@ export default function ProjectLodCheckerPage({ platform }: ProjectLodCheckerPag
         </DialogContent>
       </Dialog>
 
-      <div className="flex h-full">
-        <DisciplineSidebar
-          selected={discipline}
-          onSelect={(value) => {
-            setDiscipline(value);
-            setRows([]);
-          }}
-        />
+      <div className="grid grid-cols-1 gap-4 px-4 pb-4 xl:grid-cols-[auto_minmax(0,1fr)_minmax(0,1.2fr)]">
+        <div className="min-h-0 max-h-[750px]">
+          <DisciplineSidebar
+            selected={discipline}
+            onSelect={(value) => {
+              setDiscipline(value);
+              setRows([]);
+            }}
+          />
+        </div>
 
-        <section className="h-[650px] w-2/5 overflow-auto bg-white p-4">
+        <section className="min-h-[520px] max-h-[750px] overflow-auto rounded-md border bg-white p-4">
           <h2 className="mb-4 text-2xl font-bold">LOD Checker - {discipline}</h2>
           <LodCheckerTable discipline={discipline} rows={rows} onRowsChange={setRows} />
         </section>
 
-        <div className="h-[650px] w-3/5 bg-gray-50 p-4">
-          <div id="TADModelCheckerViwer" className="relative h-[600px] w-full flex-1 rounded border bg-white" />
+        <div className="min-h-[520px] max-h-[750px] overflow-hidden rounded-md border bg-gray-50 p-4">
+          <div className="flex h-full flex-col">
+            <div id="TADModelCheckerViwer" className="relative min-h-[420px] flex-1 rounded border bg-white" />
 
-          {!urnToLoad && !loading && (
-            <p className="mt-2 text-sm text-muted-foreground">No model selected. Use "Model mapping" to select a model.</p>
-          )}
+            {!urnToLoad && !loading && (
+              <p className="mt-2 text-sm text-muted-foreground">No model selected. Use "Model Selector" to select a model.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>

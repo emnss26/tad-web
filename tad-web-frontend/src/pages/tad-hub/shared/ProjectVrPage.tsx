@@ -17,7 +17,7 @@ export default function ProjectVrPage({ platform }: ProjectVrPageProps) {
   const [error, setError] = useState<string | null>(null);
 
   const [convertedUrl, setConvertedUrl] = useState<string | null>(null);
-  const [convertStatus, setConvertStatus] = useState("Esperando conversion...");
+  const [convertStatus, setConvertStatus] = useState("Waiting for conversion...");
   const [convertedSourceType, setConvertedSourceType] = useState<string | null>(null);
 
   useEffect(() => {
@@ -61,21 +61,21 @@ export default function ProjectVrPage({ platform }: ProjectVrPageProps) {
     try {
       setLoadingGlb(true);
       setError(null);
-      setConvertStatus("Convirtiendo modelo IFC a GLB...");
+      setConvertStatus("Converting IFC model to GLB...");
 
       const result = await DmService.getFederatedGlbUrl(projectId, accountId);
       setConvertedUrl(result?.glbUrl || null);
       setConvertedSourceType(result?.sourceType || null);
 
       if (result?.glbUrl) {
-        setConvertStatus("Conversion finalizada.");
+        setConvertStatus("Conversion completed.");
       } else {
-        setConvertStatus("No se pudo obtener URL de conversion.");
+        setConvertStatus("Unable to get conversion URL.");
       }
     } catch (err: any) {
       console.error("[ProjectVrPage.handleGetGlb]", err);
       setError(err?.message || "Error converting IFC model.");
-      setConvertStatus("Error en la conversion.");
+      setConvertStatus("Conversion failed.");
     } finally {
       setLoadingGlb(false);
     }
@@ -90,7 +90,7 @@ export default function ProjectVrPage({ platform }: ProjectVrPageProps) {
 
       <div className="mb-3 flex items-center gap-3">
         <Button onClick={handleGetGlb} disabled={!federatedModelUrn || loadingGlb || loading}>
-          {loadingGlb ? "Convirtiendo..." : "Convertir IFC a GLB + VR"}
+          {loadingGlb ? "Converting..." : "Convert IFC to GLB + VR"}
         </Button>
         <span className="text-sm text-muted-foreground">{convertStatus}</span>
       </div>

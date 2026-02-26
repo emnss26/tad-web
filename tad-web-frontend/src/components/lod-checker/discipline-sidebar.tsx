@@ -45,7 +45,7 @@ export function DisciplineSidebar({ selected, onSelect }: DisciplineSidebarProps
     <TooltipProvider>
       <aside
         className={cn(
-          "flex h-[650px] flex-col border-r border-gray-200 bg-[#f6f6f6] p-4 transition-all duration-300",
+          "flex h-full max-h-[750px] min-h-[520px] flex-col border border-gray-200 bg-[#f6f6f6] p-4 transition-all duration-300",
           collapsed ? "w-16" : "w-56"
         )}
       >

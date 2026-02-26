@@ -4,61 +4,54 @@ import { buildFolderTreeRecursively } from '../../utils/dm/dm.helpers';
 import { getToken } from '../../utils/auth/auth.utils';
 
 export const GetProjectFolderTree = async (req: Request, res: Response) => {
-    try {
-        const token = getToken(req);
+  try {
+    const token = getToken(req);
 
-        if (!token) {
-            return res.status(401).json({
-                data: null,
-                error: "Unauthorized",
-                message: "Authorization token is required."
-            });
-        }
-
-        const { projectId } = req.params;
-        const { hubId } = req.query;
-
-        if (!hubId) {
-            return res.status(400).json({ 
-                data: null,
-                error: "Bad Request",
-                message: "Missing hubId query parameter" 
-            });
-        }
-
-        // --- CORRECCIÓN CLAVE ---
-        const formattedProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
-        // ------------------------
-
-        console.log(`[DM] Building folder tree for Project: ${formattedProjectId}`);
-
-        // 1. Obtener Top Folders
-        const topFoldersData = await DataManagementLib.getTopFolders(token, hubId as string, formattedProjectId);
-        
-        // 2. Iniciar recursividad (Pasando el ID con 'b.')
-        const tree = await Promise.all(
-            topFoldersData.data.map(async (topFolder: any) => {
-                return await buildFolderTreeRecursively(
-                    token, 
-                    formattedProjectId, // <--- Usar ID con 'b.'
-                    topFolder.id, 
-                    topFolder.attributes.name
-                );
-            })
-        );
-
-        return res.status(200).json({
-            data: tree,
-            message: "Folder tree retrieved successfully"
-        });
-
-    } catch (error: any) {
-        const errorDetail = error.response?.data || error.message;
-        console.error("Error building folder tree:", errorDetail);
-        return res.status(500).json({ 
-            data: null,
-            error: errorDetail,
-            message: "Failed to retrieve folder structure"
-        });
+    if (!token) {
+      return res.status(401).json({
+        data: null,
+        error: "Unauthorized",
+        message: "Authorization token is required."
+      });
     }
+
+    const { projectId } = req.params;
+    const { hubId } = req.query;
+
+    if (!hubId) {
+      return res.status(400).json({
+        data: null,
+        error: "Bad Request",
+        message: "Missing hubId query parameter"
+      });
+    }
+
+    const formattedProjectId = projectId.startsWith('b.') ? projectId : `b.${projectId}`;
+    const topFoldersData = await DataManagementLib.getTopFolders(token, hubId as string, formattedProjectId);
+
+    const tree = await Promise.all(
+      topFoldersData.data.map(async (topFolder: any) =>
+        buildFolderTreeRecursively(
+          token,
+          formattedProjectId,
+          topFolder.id,
+          topFolder.attributes.name
+        )
+      )
+    );
+
+    return res.status(200).json({
+      data: tree,
+      message: "Folder tree retrieved successfully"
+    });
+  } catch (error: any) {
+    const errorDetail = error.response?.data || error.message;
+    console.error("Error building folder tree:", errorDetail);
+    return res.status(500).json({
+      data: null,
+      error: errorDetail,
+      message: "Failed to retrieve folder structure"
+    });
+  }
 };
+

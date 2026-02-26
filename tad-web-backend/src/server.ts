@@ -20,6 +20,7 @@ import modeldataRouter from './routes/modeldata.router';
 import taskRouter from './routes/task.router';
 import modelCheckerRouter from './routes/model.checker.router';
 import plansRouter from './routes/plans.router';
+import aecRouter from './routes/aec.router';
 
 // ----------------------------------------------------------------------
 // 1. Definición de Tipos (TypeScript)
@@ -76,7 +77,7 @@ const apiLimiter = rateLimit({
   max: 200, 
   standardHeaders: true, 
   legacyHeaders: false, 
-  message: 'Demasiadas peticiones desde esta IP, por favor intenta más tarde.'
+  message: "Too many requests from this IP, please try again later."
 });
 app.use('/api', apiLimiter);
 
@@ -128,20 +129,15 @@ app.use('/api/modeldata', modeldataRouter);
 app.use('/api/task', taskRouter);
 app.use('/api/model-checker', modelCheckerRouter);
 app.use('/api/plans', plansRouter);
+app.use('/api/aec', aecRouter);
 
 // ----------------------------------------------------------------------
 // 6. Lógica de WebSockets (Socket.IO)
 // ----------------------------------------------------------------------
 io.on('connection', (socket) => {
-  console.log('[Socket] Cliente conectado:', socket.id);
-  
-  socket.on('mcp:request', (data) => {
-    console.log('[Socket] Recibido de Revit:', data);
-  });
+  socket.on('mcp:request', () => {});
 
-  socket.on('disconnect', () => {
-    console.log('[Socket] Cliente desconectado:', socket.id);
-  });
+  socket.on('disconnect', () => {});
 });
 
 // ----------------------------------------------------------------------
@@ -165,7 +161,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   res.status(err.status || 500).json({
     data: null,
     error: 'Internal Server Error',
-    message: config.env === 'production' ? 'Ha ocurrido un error inesperado' : err.message
+    message: config.env === 'production' ? 'An unexpected error occurred' : err.message
   });
 });
 
@@ -173,5 +169,5 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // 9. Iniciar Servidor
 // ----------------------------------------------------------------------
 httpServer.listen(config.port, () => {
-  console.log(`🚀 TAD Server corriendo en puerto ${config.port} | Env: ${config.env}`);
+  console.info(`TAD Server listening on port ${config.port} (${config.env})`);
 });

@@ -30,6 +30,33 @@ export interface FolderContentNode {
     versionschema?: string | null;
 }
 
+function normalizeFolderToken(value: unknown): string {
+    return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[_-]+/g, " ");
+}
+
+function isSharedFolder(name: string): boolean {
+    const normalized = normalizeFolderToken(name);
+    if (!normalized) return false;
+
+    // Match shared/consumed folders in English/Spanish variants.
+    return (
+        normalized.includes("shared") ||
+        normalized.includes("compart") ||
+        normalized.includes("consumed") ||
+        normalized.includes("consumid")
+    );
+}
+
+function pathContainsShared(path: string): boolean {
+    return String(path || "")
+        .split("/")
+        .map(normalizeFolderToken)
+        .some((segment) => Boolean(segment) && isSharedFolder(segment));
+}
+
 /**
  * Helper recursivo para armar el árbol de carpetas (solo carpetas)
  */
@@ -73,8 +100,16 @@ export const searchFilesRecursively = async (
     projectId: string,
     folderId: string,
     folderName: string,
-    allowedExtensions: string[]
+    allowedExtensions: string[],
+    parentPath = ""
 ): Promise<FileItem[]> => {
+    const currentFolderName = String(folderName || "").trim() || "Folder";
+    const currentPath = parentPath ? `${parentPath}/${currentFolderName}` : currentFolderName;
+
+    if (pathContainsShared(currentPath)) {
+        return [];
+    }
+
     let collectedFiles: FileItem[] = [];
 
     // 1. Obtener contenido
@@ -97,7 +132,7 @@ export const searchFilesRecursively = async (
                 name: name,
                 type: 'items',
                 folderId: folderId,
-                folderName: folderName,
+                folderName: currentPath,
                 extension: extension,
                 urn: versionId,               // <--- ESTO ES LO QUE VA AL VIEWER
                 // Info extra por si la quieres mostrar
@@ -107,7 +142,11 @@ export const searchFilesRecursively = async (
     });
 
     // 3. Procesar Subcarpetas (Recursividad)
-    const subFolders = contents.data.filter((item: any) => item.type === 'folders');
+    const subFolders = contents.data.filter((item: any) => {
+        if (item.type !== 'folders') return false;
+        const subFolderName = item?.attributes?.name || item?.attributes?.displayName || "";
+        return !isSharedFolder(subFolderName);
+    });
 
     const subFolderResults = await Promise.all(
         subFolders.map(async (subFolder: any) => {
@@ -115,8 +154,9 @@ export const searchFilesRecursively = async (
                 token, 
                 projectId, 
                 subFolder.id, 
-                subFolder.attributes.name, 
-                allowedExtensions
+                subFolder?.attributes?.name || subFolder?.attributes?.displayName || "Folder",
+                allowedExtensions,
+                currentPath
             );
         })
     );

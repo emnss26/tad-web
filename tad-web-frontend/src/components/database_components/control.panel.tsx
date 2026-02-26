@@ -259,7 +259,7 @@ export default function ControlPanel({
                           <SelectTrigger className="h-8 border-0 bg-transparent focus:ring-0 focus-visible:ring-0">
                             <SelectValue placeholder="Select discipline" />
                           </SelectTrigger>
-                          <SelectContent className="bg-white">
+                          <SelectContent className="max-h-60 overflow-y-auto bg-white">
                             {disciplineOptions.map((disc) => (
                               <SelectItem
                                 key={disc}
@@ -339,7 +339,7 @@ export default function ControlPanel({
                             <ChevronDown className="h-4 w-4 ml-2 opacity-50" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56 bg-white max-h-60 overflow-y-auto">
+                        <DropdownMenuContent align="end" className="w-56 max-h-60 overflow-y-auto bg-white">
                           <DropdownMenuItem
                             onClick={() => handlePullData(null)}
                             className="data-[state=highlighted]:bg-[#2ea3e3] data-[highlighted]:bg-[#2ea3e3] data-[highlighted]:text-white"

@@ -11,6 +11,57 @@ export interface DmFolderNode {
   versionschema?: string | null;
 }
 
+interface DmModelFile {
+  id: string;
+  name: string;
+  folderName: string;
+  extension: string;
+  urn: string;
+  versionNumber?: number;
+}
+
+function normalizeFolderName(value: unknown): string {
+  return String(value || "").toLowerCase().replace(/[_-]+/g, " ").trim();
+}
+
+function isSharedFolderName(folderName: unknown): boolean {
+  const normalized = normalizeFolderName(folderName);
+  if (!normalized) return false;
+  return (
+    normalized.includes("shared") ||
+    normalized.includes("compart") ||
+    normalized.includes("consumed") ||
+    normalized.includes("consumid")
+  );
+}
+
+function dedupeAndFilterModels(models: DmModelFile[]): DmModelFile[] {
+  const byKey = new Map<string, DmModelFile>();
+
+  models.forEach((file) => {
+    if (isSharedFolderName(file?.folderName)) return;
+
+    const urn = String(file?.urn || "").trim();
+    const id = String(file?.id || "").trim();
+    const dedupeKey = urn || id;
+    if (!dedupeKey) return;
+
+    const existing = byKey.get(dedupeKey);
+    if (!existing) {
+      byKey.set(dedupeKey, file);
+      return;
+    }
+
+    const currentVersion = Number(file?.versionNumber || 0);
+    const existingVersion = Number(existing?.versionNumber || 0);
+    if (currentVersion > existingVersion) {
+      byKey.set(dedupeKey, file);
+    }
+  });
+
+  return Array.from(byKey.values());
+}
+
 export const DmService = {
   /**
    * Obtiene todos los archivos de modelo (rvt, dwg, nwd) del proyecto recursivamente.
@@ -22,7 +73,15 @@ export const DmService = {
     const response = await api.get(`/dm/projects/${projectId}/model-files`, {
       params: { hubId: formattedHubId }
     });
-    return response.data;
+
+    const models = Array.isArray(response?.data?.data) ? (response.data.data as DmModelFile[]) : [];
+    const cleaned = dedupeAndFilterModels(models);
+
+    return {
+      ...response.data,
+      data: cleaned,
+      count: cleaned.length,
+    };
   },
 
   getFederatedModel: async (projectId: string, accountId: string) => {

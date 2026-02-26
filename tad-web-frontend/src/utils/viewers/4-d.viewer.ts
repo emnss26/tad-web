@@ -231,7 +231,6 @@ export const data4Dviewer = async (options: IViewer4DOptions) => {
 
     window.data4Dviewer.set4DData = (newData: I4DItem[]) => {
       _data4D = newData;
-      console.log(`Viewer: 4D Data updated with ${newData.length} items.`);
     };
 
     window.data4Dviewer.resetViewerState = () => {
@@ -264,7 +263,6 @@ export const data4Dviewer = async (options: IViewer4DOptions) => {
     let documentId = "";
     try {
       documentId = toViewerDocumentId(federatedModel);
-      console.log("4D Viewer documentId:", documentId);
     } catch (e) {
       console.error("Invalid federatedModel URN:", e);
       return;

@@ -33,7 +33,7 @@ const solutions: Solution[] = [
     title: "MCP Connection",
     description: "Real-time bridge between Revit and the Cloud. Execute python scripts and automate parameters.",
     icon: <Terminal className="h-6 w-6" />,
-    path: "/mcp",
+    path: "/mcp-solutions",
     status: "active",
     colorClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     features: ["Python script execution", "Parameter automation", "Cloud synchronization"],

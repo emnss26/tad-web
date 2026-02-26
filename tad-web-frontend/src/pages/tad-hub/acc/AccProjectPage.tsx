@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import ModulePageHeader from "@/components/hub/ModulePageHeader";
 import { 
-  Users, AlertCircle, FileText, CheckSquare, ArrowLeft, 
+  Users, AlertCircle, FileText, CheckSquare,
   Box, Cuboid, Loader2 
 } from "lucide-react";
 
@@ -125,8 +126,9 @@ const ACCProjectPage = () => {
       setLoadingModels(true);
       // Data Management API usa "b." + accountId generalmente como Hub ID
       const data = await DmService.getProjectModels(projectId, accountId);
-      console.log("Fetched models:", data);
-      setModels(data.data || []);
+      const projectModels = Array.isArray(data?.data) ? data.data : [];
+      const filtered = projectModels.filter((file: IModelFile) => ["rvt", "nwd"].includes(String(file.extension).toLowerCase()));
+      setModels(filtered);
     } catch (err) {
       console.error("Error fetching models:", err);
     } finally {
@@ -140,8 +142,6 @@ const ACCProjectPage = () => {
   useEffect(() => {
     // Si hay una URN seleccionada y el contenedor existe, cargamos el viewer
     if (selectedUrn && !viewerInitialized.current) {
-      console.log("Initializing Viewer for URN:", selectedUrn);
-      
       // Pequeño timeout para asegurar que el DIV esté montado
       setTimeout(() => {
         simpleViewer(selectedUrn);
@@ -176,21 +176,14 @@ const ACCProjectPage = () => {
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500 h-full overflow-y-auto">
-      
-      {/* --- HEADER --- */}
-      <div className="flex flex-col space-y-2">
-        
-        <div className="flex justify-between items-start">
-            <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                {loading ? <Skeleton className="h-9 w-96" /> : project?.name || "Project Dashboard"}
-            </h1>
-            
-            </div>
-        </div>
-      </div>
-
-      <hr className="border-border" />
+      <ModulePageHeader
+        title="Project Overview"
+        description={
+          loading
+            ? "Loading project dashboard metrics..."
+            : `Overview metrics and model actions for ${project?.name || "the selected project"}.`
+        }
+      />
 
       {/* --- STATS CARDS --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -225,7 +218,7 @@ const ACCProjectPage = () => {
                     {loadingModels ? (
                         <div className="flex flex-col items-center justify-center py-10 space-y-3">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                            <p className="text-sm text-muted-foreground">Searching for .rvt, .dwg, .nwd files...</p>
+                            <p className="text-sm text-muted-foreground">Searching for .rvt and .nwd files...</p>
                         </div>
                     ) : (
                         <ScrollArea className="h-[300px] pr-4">

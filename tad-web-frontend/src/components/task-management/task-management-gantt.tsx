@@ -208,7 +208,7 @@ export function TaskManagementGantt({ tasks = [] }: TaskManagementGanttProps) {
 
           <div className="relative">
             {tasks.length === 0 ? (
-              <div className="flex h-32 items-center justify-center text-gray-500">No hay tareas para mostrar</div>
+              <div className="flex h-32 items-center justify-center text-gray-500">No tasks to display</div>
             ) : (
               tasks.map((task) => {
                 const barStyle = getBarStyle(task);
