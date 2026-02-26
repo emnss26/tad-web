@@ -57,7 +57,7 @@ export const simpleViewer = async (urn: string): Promise<void> => {
       Autodesk.Viewing.Document.load(
         documentId,
         (doc: any) => {
-          // Éxito: Cargar la geometría por defecto (Vista 3D principal)
+          //  Éxito: Cargar la geometría por defecto (Vista 3D principal)
           const defaultModel = doc.getRoot().getDefaultGeometry();
           viewer.loadDocumentNode(doc, defaultModel);
         },
